@@ -1,0 +1,45 @@
+{% extends 'base.html'%}
+
+{% load staticfiles %}
+{% load base_tags %}
+
+{% block head %}
+
+{% endblock head %}
+
+{%  block nav %}
+    {% nav_bar %}
+{%  endblock nav %}
+
+{% block content %}
+    <div class="container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th> image name </th>
+                    <th> image name </th>
+                    <th> connected component threshold </th>
+                    <th> severity threshold </th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for image in images %}
+                <tr>
+                    <td> <a href="{% url 'imagedetail' image.pk %}">{{image.image}}</a> </td>
+                    <td> {{image.uploaded_date}} </td>
+                    <td> {{image.cc_th}} </td>
+                    <td> {{image.severity_th}} </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+
+{% block jquery %}
+
+{% endblock jquery %}
+
+{% block footer %}
+    <span class="text-muted">Footer From Front Page.</span>
+{% endblock footer %}

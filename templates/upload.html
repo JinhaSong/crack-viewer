@@ -1,0 +1,34 @@
+{% extends 'base.html'%}
+
+{% load staticfiles %}
+{% load base_tags %}
+
+{% block head %}
+
+{% endblock head %}
+
+{%  block nav %}
+    {% nav_bar %}
+{%  endblock nav %}
+
+{% block content %}
+<div class="container">
+    <form method="POST" action="{% url 'upload' %}" id="add_form" enctype="multipart/form-data">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <input type="file"
+               name="image"
+               id="image" />
+        <button type="submit" form="add_form">Add</button>
+        <p>{{ image }}</p>
+    </form>
+</div>
+{% endblock content %}
+
+{% block jquery %}
+
+{% endblock jquery %}
+
+{% block footer %}
+    <span class="text-muted">Footer From Front Page.</span>
+{% endblock footer %}
