@@ -68,6 +68,16 @@ def imagelist(request) :
 
 def imagedetail(request, image_pk) :
     image = ImageModel.objects.filter(pk=image_pk)
+    seg_result = SegResultModel.objects.filter(image=image_pk)
+
+    seg_image_url = str(seg_result[0].seg_image).split(settings.MEDIA_ROOT)[1][1:]
+
+    print('image_pk',type(image_pk), image_pk)
+    return render(request, 'imagedetail.html', {
+                      'image': image[0],
+                      'image_pk': image_pk,
+                      'seg_result': seg_image_url,
+                  })
 
 @csrf_exempt
 def get_cracks(request) :
