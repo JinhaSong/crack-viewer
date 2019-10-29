@@ -3,12 +3,16 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseForbidden
+from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from .forms import ImageUploadForm
-from .models import ImageModel
-from time import sleep
+from .models import ImageModel, ClsResultModel, SegResultModel
+from .utils.AnalysisRequest import AnalysisRequest
+from CrackSite import settings
 
-import json, ast
+from PIL import Image
+from io import BytesIO, StringIO
+import json, os, base64
 
 @csrf_exempt
 def upload(request) :
@@ -64,4 +68,19 @@ def imagelist(request) :
 
 def imagedetail(request, image_pk) :
     image = ImageModel.objects.filter(pk=image_pk)
-    return render(request, 'imagedetail.html', {'image' : image[0]})
+
+@csrf_exempt
+def get_cracks(request) :
+    cracks = []
+    if request.method == "POST" :
+        cls_result = ClsResultModel.objects.filter(image__pk=request.POST['image_pk'])
+        print(len(cls_result))
+        for crack in cls_result :
+            dict_crack = {}
+            dict_crack['label'] = crack.label
+            dict_crack['x'] = crack.x
+            dict_crack['y'] = crack.y
+            dict_crack['w'] = crack.w
+            dict_crack['h'] = crack.h
+            cracks.append(dict_crack)
+    return HttpResponse(json.dumps({"cracks": cracks}), 'application/json')
