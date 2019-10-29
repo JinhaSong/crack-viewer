@@ -10,6 +10,9 @@ urlpatterns = [
     url(r'^upload/', views.upload, name='upload'),
     url(r'^imagelist/', views.imagelist, name='imagelist'),
     url(r'^imagedetail/(?P<image_pk>\d+)/$', views.imagedetail, name='imagedetail'),
+
+    # jquery
+    url(r'^get_cracks/', views.get_cracks, name='get_cracks'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
