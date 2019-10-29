@@ -22,4 +22,4 @@ class ClsResultModel(models.Model):
 
 class SegResultModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='seg_results', on_delete=models.CASCADE)
-    seg_image = models.TextField(null=True, unique=False)
+    seg_image = models.ImageField()
