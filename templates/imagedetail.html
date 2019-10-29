@@ -15,12 +15,18 @@
     <div class="container">
         <br>
         <div class="container">
-            <canvas id="canvas" width="1000" height="300"></canvas>
-            <!--<img src="/media/{{image.image}}">-->
+            <div class="row">
+                <div class="col-lg-6">
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div class="col-lg-6">
+                    <canvas id="canvas1"></canvas>
+                </div>
+            </div>
         </div>
         <br>
         <div>
-            <h2>{{ image.image }}</h2>
+            <h2>{{ image }}</h2>
         </div>
         <br>
     </div>
@@ -28,17 +34,59 @@
 
 {% block jquery %}
 <script>
-var context = document.getElementById('canvas').getContext("2d");
+var origin_canvas = document.getElementById('canvas').getContext("2d");
+var seg_canvas = document.getElementById('canvas1').getContext("2d");
 
-var img = new Image();
-img.onload = function () {
-    canvas.height = img.height/10;
-    canvas.width = img.width/10;
-    console.log(canvas.height)
-    console.log(canvas.width)
-    context.drawImage(img, 0, 0, canvas.width, canvas.height);
-}
-img.src = "/media/{{image.image}}"
+var color = [
+    "rgb(255, 0, 0)", "rgb(255, 187, 0)", "rgb(255, 228, 0)",
+    "rgb(29, 219, 22)", "rgb(0, 84, 255)", "rgb(95, 0, 255)",
+    "rgb(255, 0, 127)"
+]
+
+
+$.ajax({
+    url: "{% url 'get_cracks' %}",
+    type: "POST",
+    data: {
+        name: 'get_cracks',
+        image_pk: '{{ image_pk }}',
+    },
+    success: function (response) {
+        console.log(response)
+        var cracks = response['cracks']
+
+        var origin_img = new Image();
+        var seg_img = new Image();
+        origin_img.onload = function () {
+            var width = Number(parseInt(origin_img.height/10));
+            var height = Number(parseInt(origin_img.width/10));
+            origin_canvas.canvas.height = width;
+            origin_canvas.canvas.width = height;
+            seg_canvas.canvas.height = width;
+            seg_canvas.canvas.width = height;
+            origin_canvas.drawImage(origin_img, 0, 0, 370, 1000);
+            seg_canvas.drawImage(seg_img, 0, 0, 370, 1000);
+
+            for (var i = 0; i < cracks.length; i++) {
+                origin_canvas.rect(cracks[i]['x']/10, cracks[i]['y']/10, cracks[i]['w']/10, cracks[i]['h']/10);
+                origin_canvas.lineWidth = 1;
+                origin_canvas.strokeStyle = color[0];
+                origin_canvas.stroke();
+
+                // seg_canvas.rect(cracks[i]['x']/10, cracks[i]['y']/10, cracks[i]['w']/10, cracks[i]['h']/10);
+                // seg_canvas.lineWidth = 1;
+                // seg_canvas.strokeStyle = color[1];
+                // seg_canvas.stroke();
+            }
+        }
+        origin_img.src = "/media/{{image.image}}"
+        seg_img.src = "/media/{{seg_result}}"
+    }
+});
+
+
+
+
 </script>
 {% endblock jquery %}
 
