@@ -12,38 +12,59 @@
 {%  endblock nav %}
 
 {% block content %}
+<style>
+canvas.absolute {
+  position: absolute;
+}
+</style>
     <div class="container">
-        <br>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-6">
-                    <canvas id="canvas"></canvas>
-                </div>
-                <div class="col-lg-6">
-                    <canvas id="canvas1"></canvas>
-                </div>
-            </div>
-        </div>
         <br>
         <div>
             <h2>{{ image }}</h2>
         </div>
+        <br>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <canvas id="origin_canvas" class="absolute"></canvas>
+                    <canvas id="cls_canvas" class="absolute"></canvas>
+                    <canvas id="seg_canvas" class="absolute"></canvas>
+                </div>
+                <div class="col-lg-6">
+                    <button type="button" id="btn_return_origin" class="btn btn-default btn-block"> Return Origin </button>
+                    <br>
+                    <button type="button" id="btn_cls" class="btn btn-default btn-block"> Classification </button>
+                    <br>
+                    <button type="button" id="btn_seg" class="btn btn-default btn-block"> Segmentation </button>
+                    <!--<br>-->
+                    <!--<button type="button" id="btn_region" class="btn btn-default btn-block"> Region </button>-->
+                    <br>
+                    <button type="button" id="btn_overlap" class="btn btn-default btn-block"> Overlap </button>
+                    <br>
+                    <button type="button" id="btn_erase_origin" class="btn btn-default btn-block"> Erase Origin </button>
+                </div>
+            </div>
+        </div>
+        <br>
+
         <br>
     </div>
 {% endblock content %}
 
 {% block jquery %}
 <script>
-var origin_canvas = document.getElementById('canvas').getContext("2d");
-var seg_canvas = document.getElementById('canvas1').getContext("2d");
+var origin_canvas = document.getElementById('origin_canvas').getContext("2d");
+var cls_canvas = document.getElementById('cls_canvas').getContext("2d");
+var seg_canvas = document.getElementById('seg_canvas').getContext("2d");
 
-var color = [
-    "rgb(255, 0, 0)", "rgb(255, 187, 0)", "rgb(255, 228, 0)",
-    "rgb(29, 219, 22)", "rgb(0, 84, 255)", "rgb(95, 0, 255)",
+var colors = [
+    "rgb(255, 0, 0)",
+    "rgb(29, 219, 22)", "rgb(0, 84, 255)", "rgb(95, 0, 255)", "rgb(255, 187, 0)", "rgb(255, 228, 0)",
     "rgb(255, 0, 127)"
 ]
 
 
+var cracks
 $.ajax({
     url: "{% url 'get_cracks' %}",
     type: "POST",
@@ -52,41 +73,92 @@ $.ajax({
         image_pk: '{{ image_pk }}',
     },
     success: function (response) {
-        console.log(response)
-        var cracks = response['cracks']
-
-        var origin_img = new Image();
-        var seg_img = new Image();
-        origin_img.onload = function () {
-            var width = Number(parseInt(origin_img.height/10));
-            var height = Number(parseInt(origin_img.width/10));
-            origin_canvas.canvas.height = width;
-            origin_canvas.canvas.width = height;
-            seg_canvas.canvas.height = width;
-            seg_canvas.canvas.width = height;
-            origin_canvas.drawImage(origin_img, 0, 0, 370, 1000);
-            seg_canvas.drawImage(seg_img, 0, 0, 370, 1000);
-
+        cracks = response['cracks']
+        console.log(cracks)
+        cls_img.onload = function () {
+            var width = Number(parseInt(cls_img.width/10));
+            var height = Number(parseInt(cls_img.height/10));
+            cls_canvas.canvas.height = height;
+            cls_canvas.canvas.width = width;
             for (var i = 0; i < cracks.length; i++) {
-                origin_canvas.rect(cracks[i]['x']/10, cracks[i]['y']/10, cracks[i]['w']/10, cracks[i]['h']/10);
-                origin_canvas.lineWidth = 1;
-                origin_canvas.strokeStyle = color[0];
-                origin_canvas.stroke();
+                if (cracks[i]['label'] != "normal") {
+                    var rect_color, text_color, text;
+                    if (cracks[i]['label'] == "crack") { rect_color = colors[0], text_color = colors[0], text = "CR"; }
+                    else if (cracks[i]['label'] == "patch") {rect_color = colors[1], text_color = colors[1], text = "PAT"; }
+                    else if (cracks[i]['label'] == "lane") { rect_color = colors[2], text_color = colors[2], text = "LANE"; }
+                    else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
+                    else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
+                    else if (cracks[i]['label'] == "detail_norm") { rect_color = colors[0], text_color = colors[5], text = "CR"; }
+                    else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[6], text = "TC"; }
 
-                // seg_canvas.rect(cracks[i]['x']/10, cracks[i]['y']/10, cracks[i]['w']/10, cracks[i]['h']/10);
-                // seg_canvas.lineWidth = 1;
-                // seg_canvas.strokeStyle = color[1];
-                // seg_canvas.stroke();
+                    cls_canvas.font = "15px Arial";
+                    cls_canvas.fillStyle = text_color;
+                    cls_canvas.fillText(text, cracks[i]['x'] / 10, cracks[i]['y'] / 10 + 20);
+
+                    cls_canvas.beginPath();
+                    cls_canvas.lineWidth = "1";
+                    cls_canvas.strokeStyle = rect_color;
+                    cls_canvas.rect(cracks[i]['x'] / 10, cracks[i]['y'] / 10, cracks[i]['w'] / 10, cracks[i]['h'] / 10);
+                    cls_canvas.stroke();
+                }
             }
         }
-        origin_img.src = "/media/{{image.image}}"
-        seg_img.src = "/media/{{seg_result}}"
+        cls_img.src = "/media/{{image.image}}"
     }
 });
 
 
+var origin_img = new Image();
+var cls_img = new Image();
+var seg_img = new Image();
 
 
+
+seg_img.onload = function () {
+    var width = Number(parseInt(seg_img.width/10));
+    var height = Number(parseInt(seg_img.height/10));
+    seg_canvas.canvas.height = height;
+    seg_canvas.canvas.width = width;
+    seg_canvas.drawImage(seg_img, 0, 0, width, height);
+}
+seg_img.src = "/media/{{seg_result}}"
+
+origin_img.onload = function () {
+    var width = Number(parseInt(origin_img.width/10));
+    var height = Number(parseInt(origin_img.height/10));
+    origin_canvas.canvas.height = height;
+    origin_canvas.canvas.width = width;
+    origin_canvas.drawImage(origin_img, 0, 0, width, height);
+}
+origin_img.src = "/media/{{image.image}}"
+
+d3.select("#origin_canvas").style("opacity", 1)
+d3.select("#cls_canvas").style("opacity", 0)
+d3.select("#seg_canvas").style("opacity", 0)
+
+$("#btn_cls").click(function(e) {
+    d3.select("#origin_canvas").style("opacity", 1)
+    d3.select("#cls_canvas").style("opacity", 1)
+    d3.select("#seg_canvas").style("opacity", 0)
+})
+$("#btn_seg").click(function(e) {
+    d3.select("#origin_canvas").style("opacity", 0)
+    d3.select("#cls_canvas").style("opacity", 0)
+    d3.select("#seg_canvas").style("opacity", 1)
+})
+$("#btn_overlap").click(function(e) {
+    d3.select("#origin_canvas").style("opacity", 0.5)
+    d3.select("#seg_canvas").style("opacity", 0.5)
+    d3.select("#cls_canvas").style("opacity", 1)
+})
+$("#btn_return_origin").click(function(e) {
+    d3.select("#origin_canvas").style("opacity", 1)
+    d3.select("#cls_canvas").style("opacity", 0)
+    d3.select("#seg_canvas").style("opacity", 0)
+})
+$("#btn_erase_origin").click(function(e) {
+    d3.select("#origin_canvas").style("opacity", 0)
+})
 </script>
 {% endblock jquery %}
 
