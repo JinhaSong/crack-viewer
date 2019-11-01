@@ -42,7 +42,26 @@ def upload(request) :
             # Save classification result
             for result in cls_results:
                 clsResultModel = ClsResultModel.objects.create(image=image)
-                clsResultModel.label = result['label'][0]['description']
+
+                final_label = ''
+                label_list = []
+                label_names = ['crack', 'lane', 'patch', 'normal']
+                for label in result['label'] :
+                    if label['description'] in label_names :
+                        label_list.append(label)
+                labels = sorted(label_list, key=lambda label_list:(label_list['score']), reverse=True)
+                final_label = labels[0]
+
+                if labels[0]['description'] == 'crack':
+                    label_list = []
+                    detail_label_names = ['lc', 'tc', 'ac', 'detail_norm']
+                    for label in result['label']:
+                        if label['description'] in detail_label_names:
+                            label_list.append(label)
+                    labels = sorted(label_list, key=lambda label_list: (label_list['score']), reverse=True)
+                    final_label = labels[0]
+
+                clsResultModel.label = final_label['description']
                 clsResultModel.x = result['position']['x']
                 clsResultModel.y = result['position']['y']
                 clsResultModel.w = result['position']['w']
@@ -50,7 +69,7 @@ def upload(request) :
                 clsResultModel.save()
 
             # Save classification result
-            seg_img_path = os.path.join(settings.MEDIA_ROOT, str(image.image).split(".")[0] + "_seg" + ".png")
+            seg_img_path = os.path.join(str(image.image).split(".")[0] + "_seg" + ".png")
             segResultModel.seg_image = ContentFile(base64.b64decode(seg_result), name=seg_img_path)
             segResultModel.save()
 
@@ -69,10 +88,8 @@ def imagelist(request) :
 def imagedetail(request, image_pk) :
     image = ImageModel.objects.filter(pk=image_pk)
     seg_result = SegResultModel.objects.filter(image=image_pk)
+    seg_image_url = str(seg_result[0].seg_image)
 
-    seg_image_url = str(seg_result[0].seg_image).split(settings.MEDIA_ROOT)[1][1:]
-
-    print('image_pk',type(image_pk), image_pk)
     return render(request, 'imagedetail.html', {
                       'image': image[0],
                       'image_pk': image_pk,
@@ -84,7 +101,6 @@ def get_cracks(request) :
     cracks = []
     if request.method == "POST" :
         cls_result = ClsResultModel.objects.filter(image__pk=request.POST['image_pk'])
-        print(len(cls_result))
         for crack in cls_result :
             dict_crack = {}
             dict_crack['label'] = crack.label
