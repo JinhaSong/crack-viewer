@@ -21,5 +21,15 @@ class ClsResultModel(models.Model):
     h = models.FloatField(null=True, unique=False)
 
 class SegResultModel(models.Model):
-    image = models.ForeignKey(ImageModel, related_name='seg_results', on_delete=models.CASCADE)
+    image = models.ForeignKey(ImageModel, related_name='seg_result', on_delete=models.CASCADE)
     seg_image = models.ImageField()
+
+class SegGTModel(models.Model):
+    image = models.ForeignKey(ImageModel, related_name='seg_gt', on_delete=models.CASCADE)
+    seg_image = models.ImageField()
+
+class RegionResultModel(models.Model):
+    image = models.ForeignKey(ImageModel, related_name='region_result', on_delete=models.CASCADE)
+
+class RegionPositionModel(models.Model):
+    region_model = models.ForeignKey(RegionResultModel, related_name='region_positions', on_delete=models.CASCADE)
