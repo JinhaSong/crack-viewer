@@ -8,8 +8,11 @@ from CrackViewer import views
 
 urlpatterns = [
     url(r'^upload/', views.upload, name='upload'),
-    url(r'^imagelist/', views.imagelist, name='imagelist'),
-    url(r'^imagedetail/(?P<image_pk>\d+)/$', views.imagedetail, name='imagedetail'),
+    url(r'^compare_seg/(?P<image_pk>\d+)/$', views.compare_seg, name='compare_seg'),
+
+    url(r'^imagelist/', views.image_list, name='imagelist'),
+
+    url(r'^imagedetail/(?P<image_pk>\d+)/$', views.image_detail, name='imagedetail'),
 
     # jquery
     url(r'^get_cracks/', views.get_cracks, name='get_cracks'),
