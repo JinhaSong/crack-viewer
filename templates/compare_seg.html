@@ -1,0 +1,47 @@
+{% extends 'base.html'%}
+
+{% load staticfiles %}
+{% load base_tags %}
+
+{% block head %}
+
+{% endblock head %}
+
+{%  block nav %}
+    {% nav_bar %}
+{%  endblock nav %}
+
+{% block content %}
+<div class="container">
+    {% if is_seg_gt == False %}
+    <form method="POST" action="{% url 'compare_seg' image_pk %}" id="add_form" enctype="multipart/form-data">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <input type="file"
+               name="seg_image"
+               id="seg_image" />
+        <button type="submit" form="add_form">Add</button>
+        <p>{{ image }}</p>
+    </form>
+    {% endif %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <!--<img src="/media/{{seg_result.image}}">-->
+            </div>
+            <div class="col-lg-6">
+                <!--<img src="/media/{{seg_gt.seg_image}}">-->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block jquery %}
+
+{% endblock jquery %}
+
+{% block footer %}
+    <span class="text-muted">Footer From Front Page.</span>
+{% endblock footer %}

@@ -5,8 +5,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
-from .forms import ImageUploadForm
-from .models import ImageModel, ClsResultModel, SegResultModel
+from .forms import ImageUploadForm, SegGTUploadForm
+from .models import ImageModel, ClsResultModel, SegResultModel, SegGTModel
 from .utils.AnalysisRequest import AnalysisRequest
 from CrackSite import settings
 
@@ -16,7 +16,6 @@ import json, os, base64
 
 @csrf_exempt
 def upload(request) :
-    template_name = "upload.html"
     if request.method == "POST" :
         form = ImageUploadForm(request.POST, request.FILES)
 
@@ -80,12 +79,38 @@ def upload(request) :
         template_name = "upload.html"
         return render(request, template_name)
 
-def imagelist(request) :
+def compare_seg(request, image_pk) :
+    if request.method == "POST":
+        form = SegGTUploadForm(request.POST, request.FILES)
+        print("form", form)
+        if form.is_valid():
+            print("valid")
+            seg_image = form.save(commit=False)
+            seg_image.image = ImageModel.objects.get(pk=image_pk)
+            seg_image.save()
+            return redirect('/compare_seg/' + str(image_pk))
+
+        else :
+            print('invalid')
+            return redirect('/compare_seg/' + str(image_pk))
+    else:
+        template_name = "compare_seg.html"
+
+        seg_result = ImageModel.objects.get(pk=image_pk)
+        seg_gt = SegGTModel.objects.filter(image=image_pk)
+        is_seg_gt = None
+        if len(seg_gt) > 0:
+            is_seg_gt = True
+        else:
+            is_seg_gt = False
+        return render(request, template_name, {'image_pk': image_pk, 'seg_result':seg_result, 'seg_gt': seg_gt, 'is_seg_gt':is_seg_gt})
+
+def image_list(request) :
     image_model = ImageModel.objects.all().order_by('-pk')[:10]
 
     return render(request, 'imagelist.html', {'images' : image_model})
 
-def imagedetail(request, image_pk) :
+def image_detail(request, image_pk) :
     image = ImageModel.objects.filter(pk=image_pk)
     seg_result = SegResultModel.objects.filter(image=image_pk)
     seg_image_url = str(seg_result[0].seg_image)
@@ -95,7 +120,6 @@ def imagedetail(request, image_pk) :
                       'image_pk': image_pk,
                       'seg_result': seg_image_url,
                   })
-
 @csrf_exempt
 def get_cracks(request) :
     cracks = []
