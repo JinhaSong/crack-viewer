@@ -19,8 +19,15 @@ canvas.absolute {
 </style>
     <div class="container">
         <br>
-        <div>
-            <h2>{{ image }}</h2>
+        <div class="row">
+            <div class="col-lg-9">
+                <h2>{{ image.image }}</h2>
+            </div>
+            <div class="col-lg-3">
+                <button type="button" class="btn btn-default btn-block">
+                    <a href="/compare_seg/{{image_pk}}">Compare Segmentation </a>
+                </button>
+            </div>
         </div>
         <br>
         <div class="container">
