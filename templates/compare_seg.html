@@ -38,7 +38,7 @@ canvas.absolute {
     <div class="container">
         <div class="row">
             <div class="col-lg-9">
-                <canvas id="canvas_seg_result" class="absolute"></canvas>
+                <canvas id="canvas" class="absolute"></canvas>
             </div>
             <div class="col-lg-3">
                 <div class="row">
@@ -54,7 +54,7 @@ canvas.absolute {
                 <br>
                 <button type="button" id="btn_seg_gt" class="btn btn-default btn-block"> Ground Truth </button>
                 <br>
-                <button type="button" id="btn_overlap" class="btn btn-default btn-block"> Operlap </button>
+                <button type="button" id="btn_overlap" class="btn btn-default btn-block"> Overlap </button>
             </div>
         </div>
     </div>
@@ -65,57 +65,57 @@ canvas.absolute {
 {% block jquery %}
 <script>
 
-
+var img = [];
 var img_seg_result = new Image;
 var img_seg_gt = new Image;
-var img = img_seg_result
 
-var canvas_seg_result = document.getElementById('canvas_seg_result');
+var canvas = document.getElementById('canvas');
 
-canvas_seg_result.width = 800;
-canvas_seg_result.height = 1000;
+canvas.width = 800;
+canvas.height = 1000;
+var alpha = 1;
 
-img.onload = function() {
-    var ctx = canvas_seg_result.getContext('2d');
+img_seg_result.onload = function () {
+    var ctx = canvas.getContext('2d');
 
     trackTransforms(ctx);
+    img.push(img_seg_result);
 
     function redraw(img) {
         var p1 = ctx.transformedPoint(0, 0);
-        var p2 = ctx.transformedPoint(canvas_seg_result.width, canvas_seg_result.height);
+        var p2 = ctx.transformedPoint(canvas.width, canvas.height);
         ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas_seg_result.width, canvas_seg_result.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
 
-        // ctx.globalAlpha = 0.8
+        ctx.globalAlpha = alpha;
 
-        ctx.drawImage(img_seg_result, 0, 0);
-        ctx.drawImage(img_seg_gt, 0, 0);
-        ctx.globalAlpha = 0.6
-
+        for (var i = 0; i < img.length; i++) {
+            ctx.drawImage(img[i], 0, 0);
+        }
     }
 
     redraw(img);
 
-    var lastX = canvas_seg_result.width / 2,
-        lastY = canvas_seg_result.height / 2;
+    var lastX = canvas.width / 2,
+        lastY = canvas.height / 2;
 
     var dragStart, dragged;
 
-    canvas_seg_result.addEventListener('mousedown', function(evt) {
+    canvas.addEventListener('mousedown', function (evt) {
         document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
-        lastX = evt.offsetX || (evt.pageX - canvas_seg_result.offsetLeft);
-        lastY = evt.offsetY || (evt.pageY - canvas_seg_result.offsetTop);
+        lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+        lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
         dragStart = ctx.transformedPoint(lastX, lastY);
         dragged = false;
     }, false);
 
-    canvas_seg_result.addEventListener('mousemove', function(evt) {
-        lastX = evt.offsetX || (evt.pageX - canvas_seg_result.offsetLeft);
-        lastY = evt.offsetY || (evt.pageY - canvas_seg_result.offsetTop);
+    canvas.addEventListener('mousemove', function (evt) {
+        lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+        lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
         dragged = true;
         if (dragStart) {
             var pt = ctx.transformedPoint(lastX, lastY);
@@ -124,13 +124,13 @@ img.onload = function() {
         }
     }, false);
 
-    canvas_seg_result.addEventListener('mouseup', function(evt) {
+    canvas.addEventListener('mouseup', function (evt) {
         dragStart = null;
     }, false);
 
     var scaleFactor = 1.1;
 
-    var zoom = function(clicks, is_btn) {
+    var zoom = function (clicks, is_btn) {
         if (is_btn == true) {
             var pt = ctx.transformedPoint(0, 0);
         } else {
@@ -141,41 +141,49 @@ img.onload = function() {
         ctx.scale(factor, factor);
         ctx.translate(-pt.x, -pt.y);
         redraw(img);
+
     }
-    $("#btn_zoomin").click(function(e) {
+    $("#btn_zoomin").click(function (e) {
         zoom(1, true);
     })
-    $("#btn_zoomout").click(function(e) {
+    $("#btn_zoomout").click(function (e) {
         zoom(-1, true);
     })
 
-    var handleScroll = function(evt) {
+    var handleScroll = function (evt) {
         var delta = evt.wheelDelta ? evt.wheelDelta / 40 : evt.detail ? -evt.detail : 0;
         if (delta) zoom(delta, false);
         return evt.preventDefault() && false;
     };
 
-    canvas_seg_result.addEventListener('DOMMouseScroll', handleScroll, false);
-    canvas_seg_result.addEventListener('mousewheel', handleScroll, false);
+    canvas.addEventListener('DOMMouseScroll', handleScroll, false);
+    canvas.addEventListener('mousewheel', handleScroll, false);
     init()
+
     function init() {
         ctx.scale(0.1, 0.1)
         redraw(img)
     }
-
-    $("#btn_seg_result").click(function(e) {
-        img = img_seg_result
+    $("#btn_seg_result").click(function (e) {
+        img.splice(0, img.length)
+        img.push(img_seg_result);
+        alpha = 1
         redraw(img)
     })
-    $("#btn_seg_gt").click(function(e) {
-        img = img_seg_gt
+    $("#btn_seg_gt").click(function (e) {
+        img.splice(0, img.length)
+        img.push(img_seg_gt);
+        alpha = 1
         redraw(img)
     })
-    $("#btn_overlap").click(function(e) {
+    $("#btn_overlap").click(function (e) {
+        img.splice(0, img.length)
+        img.push(img_seg_result);
+        img.push(img_seg_gt);
+        alpha = 0.7
         redraw(img)
     })
-};
-
+}
 
 img_seg_gt.src = '/media/{{seg_gt.seg_image}}';
 img_seg_result.src = '/media/{{seg_result.seg_image}}';
