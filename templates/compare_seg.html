@@ -4,7 +4,11 @@
 {% load base_tags %}
 
 {% block head %}
-
+<style>
+canvas.absolute {
+  border:2px solid gray;
+}
+</style>
 {% endblock head %}
 
 {%  block nav %}
@@ -13,6 +17,11 @@
 
 {% block content %}
 <div class="container">
+    <br>
+    <div class="row">
+        <h2>{{ image.image }}</h2>
+    </div>
+    <br><br>
     {% if is_seg_gt == False %}
     <form method="POST" action="{% url 'compare_seg' image_pk %}" id="add_form" enctype="multipart/form-data">
         {{ form.as_p }}
@@ -25,20 +34,225 @@
     </form>
     {% endif %}
 
+    {% if is_seg_gt == True %}
     <div class="container">
         <div class="row">
-            <div class="col-lg-6">
-                <!--<img src="/media/{{seg_result.image}}">-->
+            <div class="col-lg-9">
+                <canvas id="canvas_seg_result" class="absolute"></canvas>
             </div>
-            <div class="col-lg-6">
-                <!--<img src="/media/{{seg_gt.seg_image}}">-->
+            <div class="col-lg-3">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <button type="button" id="btn_zoomin" class="btn btn-default btn-block"> Zoom in </button>
+                    </div>
+                    <div class="col-lg-6">
+                        <button type="button" id="btn_zoomout" class="btn btn-default btn-block"> Zoom out </button>
+                    </div>
+                </div>
+                <br>
+                <button type="button" id="btn_seg_result" class="btn btn-default btn-block"> Segmentation Result</button>
+                <br>
+                <button type="button" id="btn_seg_gt" class="btn btn-default btn-block"> Ground Truth </button>
+                <br>
+                <button type="button" id="btn_overlap" class="btn btn-default btn-block"> Operlap </button>
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock content %}
 
 {% block jquery %}
+<script>
+
+
+var img_seg_result = new Image;
+var img_seg_gt = new Image;
+var img = img_seg_result
+
+var canvas_seg_result = document.getElementById('canvas_seg_result');
+
+canvas_seg_result.width = 800;
+canvas_seg_result.height = 1000;
+
+img.onload = function() {
+    var ctx = canvas_seg_result.getContext('2d');
+
+    trackTransforms(ctx);
+
+    function redraw(img) {
+        var p1 = ctx.transformedPoint(0, 0);
+        var p2 = ctx.transformedPoint(canvas_seg_result.width, canvas_seg_result.height);
+        ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas_seg_result.width, canvas_seg_result.height);
+        ctx.restore();
+
+        // ctx.globalAlpha = 0.8
+
+        ctx.drawImage(img_seg_result, 0, 0);
+        ctx.drawImage(img_seg_gt, 0, 0);
+        ctx.globalAlpha = 0.6
+
+    }
+
+    redraw(img);
+
+    var lastX = canvas_seg_result.width / 2,
+        lastY = canvas_seg_result.height / 2;
+
+    var dragStart, dragged;
+
+    canvas_seg_result.addEventListener('mousedown', function(evt) {
+        document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
+        lastX = evt.offsetX || (evt.pageX - canvas_seg_result.offsetLeft);
+        lastY = evt.offsetY || (evt.pageY - canvas_seg_result.offsetTop);
+        dragStart = ctx.transformedPoint(lastX, lastY);
+        dragged = false;
+    }, false);
+
+    canvas_seg_result.addEventListener('mousemove', function(evt) {
+        lastX = evt.offsetX || (evt.pageX - canvas_seg_result.offsetLeft);
+        lastY = evt.offsetY || (evt.pageY - canvas_seg_result.offsetTop);
+        dragged = true;
+        if (dragStart) {
+            var pt = ctx.transformedPoint(lastX, lastY);
+            ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
+            redraw(img);
+        }
+    }, false);
+
+    canvas_seg_result.addEventListener('mouseup', function(evt) {
+        dragStart = null;
+    }, false);
+
+    var scaleFactor = 1.1;
+
+    var zoom = function(clicks, is_btn) {
+        if (is_btn == true) {
+            var pt = ctx.transformedPoint(0, 0);
+        } else {
+            var pt = ctx.transformedPoint(lastX, lastY);
+        }
+        ctx.translate(pt.x, pt.y);
+        var factor = Math.pow(scaleFactor, clicks);
+        ctx.scale(factor, factor);
+        ctx.translate(-pt.x, -pt.y);
+        redraw(img);
+    }
+    $("#btn_zoomin").click(function(e) {
+        zoom(1, true);
+    })
+    $("#btn_zoomout").click(function(e) {
+        zoom(-1, true);
+    })
+
+    var handleScroll = function(evt) {
+        var delta = evt.wheelDelta ? evt.wheelDelta / 40 : evt.detail ? -evt.detail : 0;
+        if (delta) zoom(delta, false);
+        return evt.preventDefault() && false;
+    };
+
+    canvas_seg_result.addEventListener('DOMMouseScroll', handleScroll, false);
+    canvas_seg_result.addEventListener('mousewheel', handleScroll, false);
+    init()
+    function init() {
+        ctx.scale(0.1, 0.1)
+        redraw(img)
+    }
+
+    $("#btn_seg_result").click(function(e) {
+        img = img_seg_result
+        redraw(img)
+    })
+    $("#btn_seg_gt").click(function(e) {
+        img = img_seg_gt
+        redraw(img)
+    })
+    $("#btn_overlap").click(function(e) {
+        redraw(img)
+    })
+};
+
+
+img_seg_gt.src = '/media/{{seg_gt.seg_image}}';
+img_seg_result.src = '/media/{{seg_result.seg_image}}';
+
+
+function trackTransforms(ctx) {
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+    var xform = svg.createSVGMatrix();
+    ctx.getTransform = function() {
+        return xform;
+    };
+
+    var savedTransforms = [];
+    var save = ctx.save;
+    ctx.save = function() {
+        savedTransforms.push(xform.translate(0, 0));
+        return save.call(ctx);
+    };
+
+    var restore = ctx.restore;
+    ctx.restore = function() {
+        xform = savedTransforms.pop();
+        return restore.call(ctx);
+    };
+
+    var scale = ctx.scale;
+    ctx.scale = function(sx, sy) {
+        xform = xform.scaleNonUniform(sx, sy);
+        return scale.call(ctx, sx, sy);
+    };
+
+    var rotate = ctx.rotate;
+    ctx.rotate = function(radians) {
+        xform = xform.rotate(radians * 180 / Math.PI);
+        return rotate.call(ctx, radians);
+    };
+
+    var translate = ctx.translate;
+    ctx.translate = function(dx, dy) {
+        xform = xform.translate(dx, dy);
+        return translate.call(ctx, dx, dy);
+    };
+
+    var transform = ctx.transform;
+    ctx.transform = function(a, b, c, d, e, f) {
+        var m2 = svg.createSVGMatrix();
+        m2.a = a;
+        m2.b = b;
+        m2.c = c;
+        m2.d = d;
+        m2.e = e;
+        m2.f = f;
+        xform = xform.multiply(m2);
+        return transform.call(ctx, a, b, c, d, e, f);
+    };
+
+    var setTransform = ctx.setTransform;
+    ctx.setTransform = function(a, b, c, d, e, f) {
+        xform.a = a;
+        xform.b = b;
+        xform.c = c;
+        xform.d = d;
+        xform.e = e;
+        xform.f = f;
+        return setTransform.call(ctx, a, b, c, d, e, f);
+    };
+
+    var pt = svg.createSVGPoint();
+    ctx.transformedPoint = function(x, y) {
+        pt.x = x;
+        pt.y = y;
+        return pt.matrixTransform(xform.inverse());
+    }
+}
+
+
+</script>
 
 {% endblock jquery %}
 

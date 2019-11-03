@@ -98,15 +98,19 @@ def compare_seg(request, image_pk) :
             return redirect('/compare_seg/' + str(image_pk))
     else:
         template_name = "compare_seg.html"
-
-        seg_result = ImageModel.objects.get(pk=image_pk)
+        image = ImageModel.objects.filter(pk=image_pk)
+        seg_result = SegResultModel.objects.filter(image=image_pk)
         seg_gt = SegGTModel.objects.filter(image=image_pk)
         is_seg_gt = None
+
         if len(seg_gt) > 0:
             is_seg_gt = True
+            seg_gt = seg_gt[0]
         else:
             is_seg_gt = False
-        return render(request, template_name, {'image_pk': image_pk, 'seg_result':seg_result, 'seg_gt': seg_gt, 'is_seg_gt':is_seg_gt})
+        return render(request, template_name, {
+            'image': image[0], 'image_pk': image_pk, 'seg_result':seg_result[0], 'seg_gt': seg_gt, 'is_seg_gt':is_seg_gt
+        })
 
 def image_list(request) :
     image_model = ImageModel.objects.all().order_by('-pk')[:10]
