@@ -58,7 +58,10 @@ def upload(request) :
                         if label['description'] in detail_label_names:
                             label_list.append(label)
                     labels = sorted(label_list, key=lambda label_list: (label_list['score']), reverse=True)
-                    final_label = labels[0]
+                    if labels[0]['description'] == 'detail_norm' :
+                        final_label = 'normal'
+                    else :
+                        final_label = labels[0]
 
                 clsResultModel.label = final_label['description']
                 clsResultModel.x = result['position']['x']
