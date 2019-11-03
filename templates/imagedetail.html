@@ -45,7 +45,7 @@ canvas.absolute {
                     </div>
                 </div>
                 <br>
-                <button type="button" id="btn_return_origin" class="btn btn-default btn-block"> Return Origin </button>
+                <button type="button" id="btn_origin" class="btn btn-default btn-block"> Origin </button>
                 <br>
                 <button type="button" id="btn_cls" class="btn btn-default btn-block"> Classification (On/Off) </button>
                 <br>
@@ -214,10 +214,9 @@ img_origin.onload = function () {
         redraw(img)
     }
 
-    $("#btn_return_origin").click(function(e) {
+    $("#btn_origin").click(function(e) {
         img.splice(0, img.length)
         img.push(img_origin);
-        is_crack_rect = false;
         alpha = 1
         redraw(img)
     })
