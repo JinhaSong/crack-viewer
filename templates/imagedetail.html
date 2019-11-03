@@ -76,8 +76,8 @@ var canvas = document.getElementById('canvas');
 
 var colors = [
     "rgb(255, 0, 0)",
-    "rgb(29, 219, 22)", "rgb(0, 84, 255)", "rgb(95, 0, 255)", "rgb(255, 187, 0)", "rgb(255, 228, 0)",
-    "rgb(255, 0, 127)"
+    "rgb(29, 219, 22)", "rgb(0, 84, 255)", "rgb(255, 228, 0)", "rgb(255, 187, 0)",
+    "rgb(255, 0, 127)", "rgb(95, 0, 255)"
 ]
 
 
@@ -131,8 +131,8 @@ img_origin.onload = function () {
                     else if (cracks[i]['label'] == "lane") { rect_color = colors[2], text_color = colors[2], text = "LANE"; }
                     else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
                     else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
-                    else if (cracks[i]['label'] == "detail_norm") { rect_color = colors[0], text_color = colors[5], text = "CR"; }
-                    else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[6], text = "TC"; }
+                    // else if (cracks[i]['label'] == "detail_norm") { rect_color = colors[0], text_color = colors[5], text = "CR"; }
+                    else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[5], text = "TC"; }
 
                     ctx.font = "90px Arial";
                     ctx.fillStyle = text_color;
