@@ -134,9 +134,10 @@ img_origin.onload = function () {
                     else if (cracks[i]['label'] == "detail_norm") { rect_color = colors[0], text_color = colors[5], text = "CR"; }
                     else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[6], text = "TC"; }
 
-                    ctx.font = "150px Arial";
+                    ctx.font = "90px Arial";
                     ctx.fillStyle = text_color;
-                    ctx.fillText(text, cracks[i]['x'], cracks[i]['y'] + 200);
+                    ctx.textAlign = "center";
+                    ctx.fillText(text, cracks[i]['x']+130, cracks[i]['y'] + 170);
 
                     ctx.beginPath();
                     ctx.lineWidth = "2";
