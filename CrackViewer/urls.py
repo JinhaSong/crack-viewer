@@ -16,6 +16,7 @@ urlpatterns = [
 
     # jquery
     url(r'^get_cracks/', views.get_cracks, name='get_cracks'),
+    url(r'^get_regions/', views.get_regions, name='get_regions'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

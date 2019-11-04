@@ -156,3 +156,25 @@ def get_cracks(request) :
             dict_crack['h'] = crack.h
             cracks.append(dict_crack)
     return HttpResponse(json.dumps({"cracks": cracks}), 'application/json')
+
+@csrf_exempt
+def get_regions(request) :
+    regions = []
+    if request.method == "POST" :
+        region_result = RegionResultModel.objects.filter(image__pk=request.POST['image_pk'])
+        for region in region_result :
+            dict_region = {}
+            dict_region['region_num'] = region.region_num
+            dict_region['region_type'] = region.region_type
+            dict_region['patchs'] = []
+            patchs = RegionPositionModel.objects.filter(region_model=region)
+            for patch in patchs:
+                dict_patch = {}
+                dict_patch['x'] = patch.x
+                dict_patch['y'] = patch.y
+                dict_patch['w'] = patch.w
+                dict_patch['h'] = patch.h
+                dict_region['patchs'].append(dict_patch)
+
+            regions.append(dict_region)
+    return HttpResponse(json.dumps({"regions": regions}), 'application/json')
