@@ -4,7 +4,8 @@ RUN apt-get update \
     && apt-get -y install python \
     python-pip \
     python-dev \
-    git
+    git \
+    libglib2.0-0 libsm6 libxrender1
 
 RUN pip install --upgrade pip
 RUN pip install setuptools
