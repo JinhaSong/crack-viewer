@@ -30,6 +30,13 @@ class SegGTModel(models.Model):
 
 class RegionResultModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='region_result', on_delete=models.CASCADE)
+    region_num = models.IntegerField(null=True, unique=False)
+    region_type = models.TextField(null=True, unique=False)
+
 
 class RegionPositionModel(models.Model):
     region_model = models.ForeignKey(RegionResultModel, related_name='region_positions', on_delete=models.CASCADE)
+    x = models.FloatField(null=True, unique=False)
+    y = models.FloatField(null=True, unique=False)
+    w = models.FloatField(null=True, unique=False)
+    h = models.FloatField(null=True, unique=False)
