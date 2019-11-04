@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from .forms import ImageUploadForm, SegGTUploadForm
-from .models import ImageModel, ClsResultModel, SegResultModel, SegGTModel
+from .models import *
 from .utils.AnalysisRequest import AnalysisRequest
 from CrackSite import settings
 
@@ -33,23 +33,22 @@ def upload(request) :
 
             # Get classification result and segmentation result from response of crack-bridge-site
             cls_results = response['classification_result']
-            seg_result = response['image']
+            seg_result = response['seg_image']
+            region_results = response['region_result']
 
-            # Define model variables
-            segResultModel = SegResultModel.objects.create(image=image)
 
             # Save classification result
             for result in cls_results:
                 clsResultModel = ClsResultModel.objects.create(image=image)
 
-                final_label = ''
+                final_label = None
                 label_list = []
                 label_names = ['crack', 'lane', 'patch', 'normal']
                 for label in result['label'] :
                     if label['description'] in label_names :
                         label_list.append(label)
                 labels = sorted(label_list, key=lambda label_list:(label_list['score']), reverse=True)
-                final_label = labels[0]
+                final_label = labels[0]['description']
 
                 if labels[0]['description'] == 'crack':
                     label_list = []
@@ -61,16 +60,32 @@ def upload(request) :
                     if labels[0]['description'] == 'detail_norm' :
                         final_label = 'normal'
                     else :
-                        final_label = labels[0]
+                        final_label = labels[0]['description']
 
-                clsResultModel.label = final_label['description']
+                clsResultModel.label = final_label
                 clsResultModel.x = result['position']['x']
                 clsResultModel.y = result['position']['y']
                 clsResultModel.w = result['position']['w']
                 clsResultModel.h = result['position']['h']
                 clsResultModel.save()
 
-            # Save classification result
+            for region in region_results :
+                region_area = region['region_area']
+                regionResultModel = RegionResultModel.objects.create(image=image)
+                regionResultModel.region_num = region['region']
+                regionResultModel.region_type = region['region_type']
+                for patch in region_area :
+                    regionPositionModel = RegionPositionModel.objects.create(region_model=regionResultModel)
+                    regionPositionModel.x = patch['x']
+                    regionPositionModel.y = patch['y']
+                    regionPositionModel.w = patch['w']
+                    regionPositionModel.h = patch['h']
+                    regionPositionModel.save()
+                regionResultModel.save()
+
+
+            # Save segmentation result
+            segResultModel = SegResultModel.objects.create(image=image)
             seg_img_path = os.path.join(str(image.image).split(".")[0] + "_seg" + ".png")
             segResultModel.seg_image = ContentFile(base64.b64decode(seg_result), name=seg_img_path)
             segResultModel.save()
