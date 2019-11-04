@@ -50,8 +50,8 @@ canvas.absolute {
                 <button type="button" id="btn_cls" class="btn btn-default btn-block"> Classification (On/Off) </button>
                 <br>
                 <button type="button" id="btn_seg" class="btn btn-default btn-block"> Segmentation </button>
-                <!--<br>-->
-                <!--<button type="button" id="btn_region" class="btn btn-default btn-block"> Region </button>-->
+                <br>
+                <button type="button" id="btn_region" class="btn btn-default btn-block"> Region </button>
                 <br>
                 <button type="button" id="btn_overlap" class="btn btn-default btn-block"> Overlap </button>
                 <br>
@@ -82,6 +82,10 @@ var colors = [
 
 
 var cracks;
+var regions;
+var region_colors = []
+var region_text_colors = []
+
 $.ajax({
     url: "{% url 'get_cracks' %}",
     type: "POST",
@@ -94,10 +98,33 @@ $.ajax({
     }
 });
 
+$.ajax({
+    url: "{% url 'get_regions' %}",
+    type: "POST",
+    data: {
+        name: 'get_regions',
+        image_pk: '{{ image_pk }}',
+    },
+    success: function (response) {
+        regions = response['regions']
+        for (var i = 0; i< regions.length; i++) {
+            var r = (Math.floor(Math.random() * 256));
+            var g = (Math.floor(Math.random() * 256));
+            var b = (Math.floor(Math.random() * 256));
+            var rev_r = 255-r;
+            var rev_g = 255-g;
+            var rev_b = 255-b;
+            region_colors.push('rgb(' + r + ',' + g + ',' + b + ')');
+            region_text_colors.push('rgb(' + rev_r + ',' + rev_g + ',' + rev_b + ')');
+        }
+    }
+});
+
 canvas.width = 800;
 canvas.height = 1000;
 
 var is_crack_rect = false;
+var is_region_rect = false
 var alpha = 1;
 
 img_origin.onload = function () {
@@ -227,6 +254,13 @@ img_origin.onload = function () {
             is_crack_rect = false;
         redraw(img)
     })
+    $("#btn_region").click(function(e) {
+        if (is_region_rect == false)
+            is_region_rect = true;
+        else
+            is_region_rect = false;
+        redraw(img)
+    })
     $("#btn_seg").click(function(e) {
         img.splice(0, img.length)
         img.push(img_seg);
@@ -241,7 +275,6 @@ img_origin.onload = function () {
         redraw(img)
     })
     $("#btn_erase_origin").click(function(e) {
-        console.log(img.length)
         if (img.length == 2) {
             img.splice(1, 2)
             img.push(img_seg);
