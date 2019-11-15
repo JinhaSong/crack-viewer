@@ -7,11 +7,17 @@ class AnalysisRequest :
         self.__json_data = None
         self.__json_file = None
 
-    def set_request_attr(self, url, image, modules=None):
+    def set_request_attr(self, url, image, modules=None, patch_size=0, region_connectivity=0, region_noise_filter=0, severity_threshold=200):
         self.__url = url
         self.__json_file = {'image': image}
         if modules is not None :
-            self.__json_data = {'modules':modules}
+            self.__json_data = {
+                'modules':modules,
+                'patch_size': patch_size,
+                'region_connectivity': region_connectivity,
+                'region_noise_filter': region_noise_filter,
+                'severity_threshold': severity_threshold
+            }
         else :
             self.__json_data = {}
 
