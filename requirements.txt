@@ -1,0 +1,4 @@
+django==1.11.18
+Pillow
+requests
+opencv-python
