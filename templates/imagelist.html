@@ -13,13 +13,81 @@
 
 {% block content %}
     <div class="container">
+        <br>
+        <div class="row">
+            <div class="col-lg-6">
+                <form method="POST" action="{% url 'upload_without_gt' %}" id="add_form_" enctype="multipart/form-data">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <div class="row">
+                        <h2>Upload</h2>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="row">
+                                <h5>Test Image</h5>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="row">
+                                <input type="file" name="image"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-9">
+                        </div>
+                        <div class="col-lg-3">
+                            <button type="submit" form="add_form_">Add</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-6">
+                <form method="POST" action="{% url 'upload' %}" id="add_form" enctype="multipart/form-data">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <div class="row">
+                        <h2>Upload with GT</h2>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="row">
+                                <h5>Test Image</h5>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <h5>GT Image</h5>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="row">
+                                <input type="file" name="image" id="image" />
+                            </div>
+                            <br>
+                            <div class="row">
+                                <input type="file" name="seg_gt_image" id="seg_gt_image" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-9">
+                        </div>
+                        <div class="col-lg-3">
+                            <button type="submit" form="add_form">Add</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <br>
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th> image name </th>
-                    <th> image name </th>
-                    <th> connected component threshold </th>
-                    <th> severity threshold </th>
+                    <th> Image name </th>
+                    <th> Date </th>
+                    <th> Connected component threshold </th>
+                    <th> Severity threshold </th>
                 </tr>
             </thead>
             <tbody>
