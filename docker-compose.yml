@@ -5,22 +5,14 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    runtime: nvidia
     restart: always
     env_file:
       - "docker-compose-env/main.env"
-    volumes:
-      - type: volume
-        source: nfs_shared
-        target: /nfs_shared
-        volume:
-          nocopy: true
     expose:
       - "8000"
       - "22"
     ports:
-      - "8001:8000"
-      - "8222:22"
+      - "8777:8000"
     stdin_open: true
     tty: true
 
