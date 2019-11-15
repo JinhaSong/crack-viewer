@@ -5,9 +5,69 @@
 
 {% block head %}
 <style>
-canvas.absolute {
-  border:2px solid gray;
+    canvas.absolute {
+      border:2px solid gray;
+    }
+    /*div.col-lg-9 {*/
+        /*text-align: center; !* center checkbox horizontally *!*/
+        /*vertical-align: middle; !* center checkbox vertically *!*/
+    /*}*/
+    #apply_wrapper {
+        align-items: center;
+    }
+    #btn_analyze {
+        float: right;
+    }
+    .range-slider .input-range {
+  -webkit-appearance: none;
+  width: 300px;
+  height: 10px;
+  border-radius: 5px;
+  background:  #B7B6B6;
+  outline: none;
 }
+.range-slider .input-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background:  #666;
+  cursor: pointer;
+  -webkit-transition: background .15s ease-in-out;
+  transition: background .15s ease-in-out;
+}
+.range-slider .input-range::-webkit-slider-thumb:hover {
+  background:  #27C6FF;
+}
+.range-slider .input-range:active::-webkit-slider-thumb {
+  background: #27C6FF;
+}
+.range-slider .range-value {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  color: #fff;
+  font-size: 16px;
+  font-weight:bold;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 3px;
+  background: #27C6FF;
+  padding: 5px 10px;
+  margin-left: 7px;
+}
+.range-slider .range-value:after {
+  position: absolute;
+  top: 8px;
+  left: -7px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-right: 7px solid #27C6FF;
+  border-bottom: 7px solid transparent;
+  content: '';
+}
+
 </style>
 {% endblock head %}
 
@@ -17,59 +77,159 @@ canvas.absolute {
 
 {% block content %}
 
-<div class="container">
-    <br>
-    <div class="row">
-        <div class="col-lg-9">
-            <h2>{{ image.image }}</h2>
-        </div>
-        <div class="col-lg-3">
-            <button type="button" class="btn btn-default btn-block">
-                <a href="/compare_seg/{{image_pk}}">Compare Segmentation </a>
-            </button>
-        </div>
+<br>
+<div class="row">
+    <div class="col-lg-12">
+        <h2>{{ image.image }}</h2>
     </div>
-    <br>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-9">
-                <canvas id="canvas" class="absolute"></canvas>
-            </div>
-            <div class="col-lg-3">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <button type="button" id="btn_zoomin" class="btn btn-default btn-block"> Zoom in </button>
+    <div class="col-lg-3">
+    </div>
+</div>
+<br>
+<div class="row">
+    <div class="col-lg-6">
+        <canvas id="canvas" class="absolute"></canvas>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <article class="card-group-item">
+                <header class="card-header">
+                    <div class="row ">
+                        <div class="col-lg-9 align-self-end">
+                            <h5 class="title"> 분석 옵션 </h5>
+                        </div>
+                        <div class="col-lg-3 align-self-center">
+                            <button type="button" class="btn btn-primary" id="btn_analysis">분석 시작</button>
+                        </div>
                     </div>
-                    <div class="col-lg-6">
-                        <button type="button" id="btn_zoomout" class="btn btn-default btn-block"> Zoom out </button>
+                </header>
+                <div class="card-body">
+                    <label><h6>균열 여부 결정 임계값</h6></label>
+                    <div class="range-slider">
+                        <input class="input-range" id="severity_threshold" type="range" value="200" min="0" max="255" style="width: calc(100% - 75px)">
+                        <span class="range-value"></span>
+                    </div>
+                    <br>
+                    <label><h6>Region 결합 방법</h6></label>
+                    <!--option selector-->
+                    <select class="form-control" id="select_region_connectivity">
+                        <option value="0">Connectivity - 4</option>
+                        <option value="1" selected>Connectivity - 8</option>
+                    </select>
+                    <br>
+                    <label><h6>Region Noise Filter 선택</h6></label>
+                    <!--option selector-->
+                    <select class="form-control" id="select_region_noise_filter">
+                        <option value="0">Nothing</option>
+                        <option value="1">Fill in the blank</option>
+                        <option value="2">Cut edge</option>
+                        <option value="3" selected>Cut edge and Fill in the black</option>
+                    </select>
+                    <br>
+                    <label><h6>Patch 크기</h6></label>
+                    <input type="number" class="form-control" id="input_patch_size" value="256">
+                </div>
+            </article>
+        </div>
+        <br>
+        <div class="card">
+            <article class="card-group-item">
+                <header class="card-header">
+                    <div class="row ">
+                        <div class="col-lg-9 align-self-end">
+                            <h5 class="title"> 보기 옵션 </h5>
+                        </div>
+                    </div>
+                </header>
+                <div class="card-body">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="chkbox_origin">
+                        <label class="custom-control-label" for="chkbox_origin"> <h8>도로 이미지</h8> </label>
                     </div>
                 </div>
-                <br>
-                <button type="button" id="btn_origin" class="btn btn-default btn-block"> Origin </button>
-                <br>
-                <button type="button" id="btn_cls" class="btn btn-default btn-block"> Classification (On/Off) </button>
-                <br>
-                <button type="button" id="btn_seg" class="btn btn-default btn-block"> Segmentation </button>
-                <br>
-                <button type="button" id="btn_region" class="btn btn-default btn-block"> Region </button>
-                <br>
-                <button type="button" id="btn_overlap" class="btn btn-default btn-block"> Overlap </button>
-                <br>
-                <button type="button" id="btn_erase_origin" class="btn btn-default btn-block"> Erase Origin </button>
+            </article>
+
+            <div class="card-group-item">
+                <article class="card-group">
+                    <div class="card">
+                        <header class="card-header"><h6 class="title"> 전문가 태깅 </h6></header>
+                        <div class="card-body">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="chkbox_seg_gt">
+                                <label class="custom-control-label" for="chkbox_seg_gt"> <h7>균열</h7> </label>
+                                </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="chkbox_cls_gt">
+                                <label class="custom-control-label" for="chkbox_cls_gt"> <h7>균열 형식(Patch 별)</h7> </label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="chkbox_region_gt">
+                                <label class="custom-control-label" for="chkbox_region_gt"> <h7>균열 형식(Region 별)</h7> </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <header class="card-header"><h6 class="title"> 분석 결과 </h6></header>
+                        <div class="card-body">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="chkbox_seg">
+                                <label class="custom-control-label" for="chkbox_seg"> <h7>균열</h7> </label>
+                                </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="chkbox_cls">
+                                <label class="custom-control-label" for="chkbox_cls"> <h7>균열 형식(Patch 별)</h7> </label>
+                                <span class="badge badge-primary badge-pill" id="badge_cls" style="float:right"></span>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="chkbox_region">
+                                <label class="custom-control-label" for="chkbox_region" > <h7>균열 형식(Region 별)</h7> </label>
+                                <span class="badge badge-primary badge-pill" id="badge_region"  style="float:right"></span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
             </div>
         </div>
+        <br>
+        <div class="text-center" id="apply_wrapper">
+            <button type="button" id="btn_apply" class="btn btn-outline-primary">적용</button>
+        </div>
     </div>
-    <br>
-
-    <br>
 </div>
+<br>
+<table class="table">
+    <thead>
+        <tr>
+            <th> Region </th>
+            <th> 균열종류 </th>
+            <th> 균열 폭 </th>
+            <th> 균열 길이 </th>
+            <th> 균열 면적 </th>
+            <th> 심각도 </th>
+        </tr>
+    </thead>
+    <tbody id="table_severity">
+
+    </tbody>
+</table>
 {% endblock content %}
 
 {% block jquery %}
 <script type="text/javascript" src="{% static "canvas/trackTransforms.js" %}"></script>
 <script>
+var range = $('.input-range'),
+    value = $('.range-value');
+
+value.html(range.attr('value'));
+
+range.on('input', function(){
+    value.html(this.value);
+});
+d3.select('#chkbox_origin').property('checked', true);
+
 var img = [];
 var img_seg = new Image();
+var img_seg_gt = new Image();
 var img_origin = new Image();
 
 var canvas = document.getElementById('canvas');
@@ -86,45 +246,63 @@ var regions;
 var region_colors = []
 var region_text_colors = []
 
-$.ajax({
-    url: "{% url 'get_cracks' %}",
-    type: "POST",
-    data: {
-        name: 'get_cracks',
-        image_pk: '{{ image_pk }}',
-    },
-    success: function (response) {
-        cracks = response['cracks']
-    }
-});
-
-$.ajax({
-    url: "{% url 'get_regions' %}",
-    type: "POST",
-    data: {
-        name: 'get_regions',
-        image_pk: '{{ image_pk }}',
-    },
-    success: function (response) {
-        regions = response['regions']
-        for (var i = 0; i< regions.length; i++) {
-            var r = (Math.floor(Math.random() * 256));
-            var g = (Math.floor(Math.random() * 256));
-            var b = (Math.floor(Math.random() * 256));
-            var rev_r = 255-r;
-            var rev_g = 255-g;
-            var rev_b = 255-b;
-            region_colors.push('rgb(' + r + ',' + g + ',' + b + ')');
-            region_text_colors.push('rgb(' + rev_r + ',' + rev_g + ',' + rev_b + ')');
+function get_cracks() {
+    $.ajax({
+        url: "{% url 'get_cracks' %}",
+        type: "POST",
+        data: {
+            name: 'get_cracks',
+            image_pk: '{{ image_pk }}',
+        },
+        success: function (response) {
+            cracks = response['cracks']
+            d3.select("#badge_cls").text(cracks.length)
         }
-    }
-});
+    });
+}
+function get_regions() {
+    $.ajax({
+        url: "{% url 'get_regions' %}",
+        type: "POST",
+        data: {
+            name: 'get_regions',
+            image_pk: '{{ image_pk }}',
+        },
+        success: function (response) {
+            regions = response['regions']
+            d3.select("#badge_region").text(regions.length)
 
-canvas.width = 800;
-canvas.height = 1000;
+            for (var i = 0; i < regions.length; i++) {
+                var r = (Math.floor(Math.random() * 256));
+                var g = (Math.floor(Math.random() * 256));
+                var b = (Math.floor(Math.random() * 256));
+                var rev_r = 255 - r;
+                var rev_g = 255 - g;
+                var rev_b = 255 - b;
+                region_colors.push('rgb(' + r + ',' + g + ',' + b + ')');
+                region_text_colors.push('rgb(' + rev_r + ',' + rev_g + ',' + rev_b + ')');
+            }
+            var table_severity = d3.select("#table_severity");
+            for (var i = 0; i < regions.length; i++) {
+                var tr = table_severity.append("tr");
+                tr.append("td").text(regions[i]['region_num']);
+                tr.append("td").text(regions[i]['region_type']);
+                tr.append("td").text(regions[i]['distress_width']);
+                tr.append("td").text(regions[i]['distress_height']);
+                tr.append("td").text(regions[i]['distress_area']);
+                tr.append("td").text(regions[i]['distress_serverity']);
+            }
+        }
+    });
+}
+get_cracks();
+get_regions();
+
+canvas.width = 500;
+canvas.height = 800;
 
 var is_crack_rect = false;
-var is_region_rect = false
+var is_region_rect = false;
 var alpha = 1;
 
 img_origin.onload = function () {
@@ -174,6 +352,48 @@ img_origin.onload = function () {
                 }
             }
         }
+
+
+
+        if (is_region_rect == true) {
+            for (var i = 0; i < regions.length; i++) {
+                if (regions[i]['patchs'].length > 1) {
+                    rect_color = region_colors[i];
+                    text_color = region_text_colors[i];
+                    var text_region_num = regions[i]['region_num'];
+
+                    if (regions[i]['region_type'] == "patch") { text = "PAT"; }
+                    else if (regions[i]['region_type'] == "ac") { text = "AC"; }
+                    else if (regions[i]['region_type'] == "lc") { text = "LC"; }
+                    else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+                    var xs = [];
+                    var ys = [];
+                    for (var j = 0; j < regions[i]['patchs'].length; j++) {
+                        var region = regions[i]['patchs'][j];
+                        xs.push(region['x']);
+                        ys.push(region['y']);
+                        ctx.beginPath();
+                        ctx.fillStyle = rect_color;
+                        ctx.lineWidth = 30;
+                        ctx.strokeStyle = rect_color;
+                        ctx.rect(region['x'], region['y'], region['w'], region['h']);
+                        ctx.stroke();
+                    }
+                    var min_x = Math.min.apply(null, xs);
+                    var min_y = Math.min.apply(null, ys);
+                    var max_x = Math.max.apply(null, xs);
+                    var max_y = Math.max.apply(null, ys);
+                    var center_x = min_x + (max_x - min_x)/2;
+                    var center_y = min_y + (max_y - min_y)/2;
+
+                    ctx.font = "300px Arial";
+                    ctx.fillStyle = text_color;
+                    ctx.textAlign = "center";
+                    ctx.fillText(regions[i]['region_type'], center_x + 130, center_y + 130);
+                    ctx.fillText("(" + text_region_num + ")", center_x + 130, center_y  + 430);
+                }
+            }
+        }
     }
     redraw(img);
 
@@ -220,12 +440,6 @@ img_origin.onload = function () {
         redraw(img);
 
     }
-    $("#btn_zoomin").click(function(e) {
-        zoom(1, true);
-    })
-    $("#btn_zoomout").click(function(e) {
-        zoom(-1, true);
-    })
 
     var handleScroll = function(evt) {
         var delta = evt.wheelDelta ? evt.wheelDelta / 40 : evt.detail ? -evt.detail : 0;
@@ -241,54 +455,102 @@ img_origin.onload = function () {
         redraw(img)
     }
 
-    $("#btn_origin").click(function(e) {
+    $("#btn_apply").click(function(e) {
         img.splice(0, img.length)
-        img.push(img_origin);
-        alpha = 1
-        redraw(img)
-    })
-    $("#btn_cls").click(function(e) {
-        if (is_crack_rect == false)
-            is_crack_rect = true;
-        else
-            is_crack_rect = false;
-        redraw(img)
-    })
-    $("#btn_region").click(function(e) {
-        if (is_region_rect == false)
-            is_region_rect = true;
-        else
-            is_region_rect = false;
-        redraw(img)
-    })
-    $("#btn_seg").click(function(e) {
-        img.splice(0, img.length)
-        img.push(img_seg);
-        alpha = 1
-        redraw(img)
-    })
-    $("#btn_overlap").click(function(e) {
-        img.splice(0, img.length)
-        img.push(img_seg);
-        img.push(img_origin);
-        alpha = 0.7
-        redraw(img)
-    })
-    $("#btn_erase_origin").click(function(e) {
-        if (img.length == 2) {
-            img.splice(1, 2)
+        if (d3.select("#chkbox_seg").property("checked") == true) {
             img.push(img_seg);
-        } else if (img.length == 1) {
-            img.splice(0, 1)
         }
-        alpha = 1
+        if (d3.select("#chkbox_origin").property("checked") == true) {
+            img.push(img_origin);
+        }
+        if (img.length > 1) {
+            alpha = 0.7;
+        }
+        else {
+            alpha = 1;
+        }
+        if (d3.select("#chkbox_cls").property("checked") == true) {
+            is_crack_rect = true;
+        } else {
+            is_crack_rect = false;
+        }
+
+        if (d3.select("#chkbox_region").property("checked") == true) {
+            is_region_rect = true;
+        } else {
+            is_region_rect = false;
+        }
         redraw(img)
-    })
+    });
+};
+img_origin.src = "/media/{{image.image}}";
+
+if ("{{is_gt}}" == "False") {
+    d3.select("#chkbox_cls_gt").property("disabled", true)
+    d3.select("#chkbox_seg_gt").property("disabled", true)
+    d3.select("#chkbox_region_gt").property("disabled", true)
+} else {
+    img_seg_gt.src = "/media/{{gt_result}}";
 }
-img_origin.src = "/media/{{image.image}}"
-img_seg.src = "/media/{{seg_result}}"
+if ("{{is_analyzed}}" == "False") {
+    d3.select("#chkbox_cls").property("disabled", true)
+    d3.select("#chkbox_seg").property("disabled", true)
+    d3.select("#chkbox_region").property("disabled", true)
+}
+else {
+    img_seg.src = "/media/{{seg_result}}";
+}
+$("#btn_analysis").click(function(e) {
+    var $this = $(this);
+    var loadingText = '<i class="fa fa-circle-o-notch fa-spin"></i> 분석 중';
+    if ($(this).html() !== loadingText) {
+        $this.data('original-text', $(this).html());
+        $this.html(loadingText);
+        var select_region_connectivity = document.getElementById("select_region_connectivity");
+        var select_region_noise_filter = document.getElementById("select_region_noise_filter");
+
+        var patch_size = document.getElementById("input_patch_size").value;
+        var region_connectivity = select_region_connectivity.options[select_region_connectivity.selectedIndex].value;
+        var region_noise_filter = select_region_noise_filter.options[select_region_noise_filter.selectedIndex].value;
+        var severity_threshold =  document.getElementById("severity_threshold").value;
+
+        $.ajax({
+            url: "{% url 'analysis' %}",
+            type: "POST",
+            data: {
+                name: 'analysis',
+                image_pk: '{{ image_pk }}',
+                region_connectivity: region_connectivity,
+                region_noise_filter: region_noise_filter,
+                severity_threshold: severity_threshold,
+                patch_size: patch_size
+            },
+            success: function (response) {
+                get_cracks();
+                get_regions();
+                d3.select("#chkbox_cls").property("disabled", false)
+                d3.select("#chkbox_seg").property("disabled", false)
+                d3.select("#chkbox_region").property("disabled", false)
+                $this.html($this.data('original-text'));
+            }
+        });
+    }
+});
+
 </script>
 {% endblock jquery %}
+
+{% if is_analyzed == False %}
+<script>
+
+</script>
+{% endif %}
+
+{% if is_gt == False %}
+<script>
+
+</script>
+{% endif %}
 
 {% block footer %}
     <span class="text-muted">Footer From Front Page.</span>
