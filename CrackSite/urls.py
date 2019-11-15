@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-
+from CrackViewer import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'', include('CrackViewer.urls')),
+    url(r'^$', views.image_list, name='image_list')
 ]
