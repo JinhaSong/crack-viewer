@@ -56,3 +56,40 @@ canvas.absolute {
   border-bottom: 7px solid transparent;
   content: '';
 }
+
+.region_num  {
+  text-align: center;
+}
+
+.region_type  {
+  text-align: center;
+}
+
+.table thead tr th {
+  text-align: center;
+}
+
+.severity_width  {
+  text-align: center;
+}
+.severity_height   {
+  text-align: center;
+}
+.severity_area   {
+  text-align: center;
+}
+.severity_severity  {
+  text-align: center;
+}
+.crack_width {
+  text-align: right;
+}
+.crack_height {
+  text-align: right;
+}
+.crack_area {
+  text-align: right;
+}
+.crack_severity {
+  text-align: center;
+}
