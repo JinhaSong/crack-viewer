@@ -12,13 +12,7 @@ services:
       - "8000"
       - "22"
     ports:
-      - "8777:8000"
+      - "8776:8000"
+      - "9022:22"
     stdin_open: true
     tty: true
-
-volumes:
-  nfs_shared:
-    driver_opts:
-      type: "nfs"
-      o: "addr=mldisk2.sogang.ac.kr,nolock,soft,rw"
-      device: ":/volume2/nfs_shared"

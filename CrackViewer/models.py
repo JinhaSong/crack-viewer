@@ -23,6 +23,7 @@ class ClsResultModel(models.Model):
 class SegResultModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='seg_result', on_delete=models.CASCADE)
     seg_image = models.ImageField()
+    seg_image_th = models.ImageField()
 
 class SegGTModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='seg_gt', on_delete=models.CASCADE)
@@ -35,11 +36,14 @@ class RegionResultModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='region_result', on_delete=models.CASCADE)
     region_num = models.IntegerField(null=True, unique=False)
     region_type = models.TextField(null=True, unique=False)
-    distress_width = models.FloatField(null=True, unique=False)
-    distress_height = models.FloatField(null=True, unique=False)
-    distress_area = models.FloatField(null=True, unique=False)
-    distress_serverity = models.TextField(null=True, unique=False)
-
+    total_max_width = models.FloatField(null=True, unique=False)
+    total_average_width = models.FloatField(null=True, unique=False)
+    max_width_x = models.FloatField(null=True, unique=False)
+    max_width_y = models.FloatField(null=True, unique=False)
+    maxx = models.FloatField(null=True, unique=False)
+    maxy = models.FloatField(null=True, unique=False)
+    minx = models.FloatField(null=True, unique=False)
+    miny = models.FloatField(null=True, unique=False)
 
 class RegionPositionModel(models.Model):
     region_model = models.ForeignKey(RegionResultModel, related_name='region_positions', on_delete=models.CASCADE)

@@ -23,7 +23,7 @@ canvas.absolute {
         <h2>{{ image.image }}</h2>
     </div>
     <br><br>
-    {% if is_seg_gt == False %}
+    {% if is_analyzed == False %}
     <form method="POST" action="{% url 'compare_seg' image_pk %}" id="add_form" enctype="multipart/form-data">
         {{ form.as_p }}
         {% csrf_token %}
@@ -167,19 +167,19 @@ img_seg_result.onload = function () {
         redraw(img)
     }
     $("#btn_seg_result").click(function (e) {
-        img.splice(0, img.length)
+        img.splice(0, img.length);
         img.push(img_seg_result);
         alpha = 1
         redraw(img)
-    })
+    });
     $("#btn_seg_gt").click(function (e) {
-        img.splice(0, img.length)
+        img.splice(0, img.length);
         img.push(img_seg_gt);
         alpha = 1
         redraw(img)
-    })
+    });
     $("#btn_overlap").click(function (e) {
-        img.splice(0, img.length)
+        img.splice(0, img.length);
         img.push(img_seg_result);
         img.push(img_seg_gt);
         alpha = 0.7

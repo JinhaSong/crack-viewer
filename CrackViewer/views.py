@@ -13,6 +13,7 @@ from CrackSite import settings
 from PIL import Image
 from io import BytesIO, StringIO
 import json, os, base64
+import cv2
 
 @csrf_exempt
 def upload(request) :
@@ -53,17 +54,23 @@ def image_detail(request, image_pk) :
     is_analyzed = False
     is_gt = False
     seg_image_url = ""
+    seg_image_th_url = ""
     if len(seg_result) > 0 :
         is_analyzed = True
         seg_image_url = str(seg_result[0].seg_image)
+        seg_image_th_url = str(seg_result[0].seg_image_th)
     if len(seg_gt) > 0 :
         is_gt = True
+
+    print(seg_image_url)
+    print(seg_image_th_url)
 
 
     return render(request, 'imagedetail.html', {
                     'image': image[0],
                     'image_pk': image_pk,
                     'seg_result': seg_image_url,
+                    'seg_th_result': seg_image_th_url,
                     'seg_gt':seg_gt,
                     'is_analyzed': is_analyzed,
                     'is_gt': is_gt
@@ -93,10 +100,14 @@ def get_regions(request) :
             dict_region['region_num'] = region.region_num
             dict_region['region_type'] = region.region_type
             dict_region['patchs'] = []
-            dict_region['distress_width'] = region.distress_width
-            dict_region['distress_height'] = region.distress_height
-            dict_region['distress_area'] = region.distress_area
-            dict_region['distress_serverity'] = region.distress_serverity
+            dict_region['total_max_width'] = region.total_max_width
+            dict_region['total_average_width'] = region.total_average_width
+            dict_region['max_width_x'] = region.max_width_x
+            dict_region['max_width_y'] = region.max_width_y
+            dict_region['maxx'] = region.maxx
+            dict_region['maxy'] = region.maxy
+            dict_region['minx'] = region.minx
+            dict_region['miny'] = region.miny
             patchs = RegionPositionModel.objects.filter(region_model=region)
             for patch in patchs:
                 dict_patch = {}
@@ -119,13 +130,16 @@ def analysis(request) :
         # Send analysis request to crack-bridge-site
         analysis_request = AnalysisRequest()
         b_image = analysis_request.load_binary_image(image_path)
+
+        region_connectivity = int(request.POST['region_connectivity'])
+        region_noise_filter = int(request.POST['region_noise_filter'])
+        severity_threshold = int(request.POST['severity_threshold'])
         analysis_request.set_request_attr(
             url='http://mltwins.sogang.ac.kr:8000/analyzer/',
             image=b_image, modules='crack',
-            patch_size=request.POST['patch_size'],
-            region_connectivity=int(request.POST['region_connectivity']),
-            region_noise_filter=int(request.POST['region_noise_filter']),
-            severity_threshold=int(request.POST['severity_threshold']),
+            region_connectivity=region_connectivity,
+            region_noise_filter=region_noise_filter,
+            severity_threshold=severity_threshold,
         )
         response = json.loads((analysis_request.send_request_message().content).decode("utf-8"))['results'][0]['module_result']
 
@@ -165,36 +179,26 @@ def analysis(request) :
             clsResultModel.h = result['position']['h']
             clsResultModel.save()
 
-        print(region_results)
+        # print(region_results)
         for region in region_results :
             region_area = region['region_area']
             regionResultModel = RegionResultModel.objects.create(image=image)
             regionResultModel.region_num = region['region']
             regionResultModel.region_type = region['region_type']
-
-            # if region['distress_width'] == "null" :
-            #     regionResultModel.distress_width = None
-            # else :
-            #     regionResultModel.distress_width = region['distress_width']
-            #
-            # if region['distress_height'] == "null":
-            #     regionResultModel.distress_height = None
-            # else :
-            #     regionResultModel.distress_height = region['distress_height']
-            #
-            # if region['distress_area'] == "null":
-            #     regionResultModel.distress_area = None
-            # else :
-            #     regionResultModel.distress_area = region['distress_area']
-            # if region['distress_serverity'] == "null":
-            #     regionResultModel.distress_serverity = None
-            # else :
-            #     regionResultModel.distress_serverity = region['distress_serverity']
-
+            try :
+                regionResultModel.total_max_width = region['total_max_width']
+                regionResultModel.total_average_width = region['total_average_width']
+                regionResultModel.max_width_x = region['max_width_x']
+                regionResultModel.max_width_y = region['max_width_y']
+                regionResultModel.maxx = region['maxx']
+                regionResultModel.maxy = region['maxy']
+                regionResultModel.minx = region['minx']
+                regionResultModel.miny = region['miny']
+            except :
+                print(region['region_type'])
 
             for patch in region_area :
                 regionPositionModel = RegionPositionModel.objects.create(region_model=regionResultModel)
-
 
                 regionPositionModel.x = patch['x']
                 regionPositionModel.y = patch['y']
@@ -207,8 +211,33 @@ def analysis(request) :
         # Save segmentation result
         segResultModel = SegResultModel.objects.create(image=image)
         seg_img_path = os.path.join(str(image.image).split(".")[0] + "_seg" + ".png")
+        seg_img_th_path = os.path.join(str(image.image).split(".")[0] + "_seg_th" + ".png")
         segResultModel.seg_image = ContentFile(base64.b64decode(seg_result), name=seg_img_path)
+        segResultModel.seg_image_th = ContentFile(base64.b64decode(seg_result), name=seg_img_th_path)
         segResultModel.save()
+
+        seg_img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_path)
+        seg_img_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_th_path)
+        seg_img = cv2.imread(seg_img_path, -1)
+        seg_img_th = cv2.imread(seg_img_th_path, -1)
+
+        seg_img[seg_img <= 0] = 0
+        tmp = cv2.cvtColor(seg_img, cv2.COLOR_BGR2GRAY)
+        _, alpha = cv2.threshold(tmp, 0, 127, cv2.THRESH_BINARY)
+        b, g, r = cv2.split(seg_img)
+        rgba = [b, g, r, alpha]
+        seg_img = cv2.merge(rgba, 4)
+
+        seg_img_th[seg_img_th <= severity_threshold] = 0
+        tmp = cv2.cvtColor(seg_img_th, cv2.COLOR_BGR2GRAY)
+        _, alpha = cv2.threshold(tmp, 0, 200, cv2.THRESH_BINARY)
+        b, g, r = cv2.split(seg_img_th)
+        rgba = [b, g, r, alpha]
+        seg_img_th = cv2.merge(rgba, 4)
+
+        cv2.imwrite(seg_img_path, seg_img)
+        cv2.imwrite(seg_img_th_path, seg_img_th)
+
         return HttpResponse(json.dumps({"state": True}), 'application/json')
     else:
         return HttpResponse(json.dumps({"state": False}), 'application/json')

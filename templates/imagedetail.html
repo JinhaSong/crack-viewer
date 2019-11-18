@@ -4,71 +4,7 @@
 {% load base_tags %}
 
 {% block head %}
-<style>
-    canvas.absolute {
-      border:2px solid gray;
-    }
-    /*div.col-lg-9 {*/
-        /*text-align: center; !* center checkbox horizontally *!*/
-        /*vertical-align: middle; !* center checkbox vertically *!*/
-    /*}*/
-    #apply_wrapper {
-        align-items: center;
-    }
-    #btn_analyze {
-        float: right;
-    }
-    .range-slider .input-range {
-  -webkit-appearance: none;
-  width: 300px;
-  height: 10px;
-  border-radius: 5px;
-  background:  #B7B6B6;
-  outline: none;
-}
-.range-slider .input-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background:  #666;
-  cursor: pointer;
-  -webkit-transition: background .15s ease-in-out;
-  transition: background .15s ease-in-out;
-}
-.range-slider .input-range::-webkit-slider-thumb:hover {
-  background:  #27C6FF;
-}
-.range-slider .input-range:active::-webkit-slider-thumb {
-  background: #27C6FF;
-}
-.range-slider .range-value {
-  display: inline-block;
-  position: relative;
-  width: 60px;
-  color: #fff;
-  font-size: 16px;
-  font-weight:bold;
-  line-height: 20px;
-  text-align: center;
-  border-radius: 3px;
-  background: #27C6FF;
-  padding: 5px 10px;
-  margin-left: 7px;
-}
-.range-slider .range-value:after {
-  position: absolute;
-  top: 8px;
-  left: -7px;
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-right: 7px solid #27C6FF;
-  border-bottom: 7px solid transparent;
-  content: '';
-}
 
-</style>
 {% endblock head %}
 
 {%  block nav %}
@@ -78,144 +14,169 @@
 {% block content %}
 
 <br>
-<div class="row">
-    <div class="col-lg-12">
-        <h2>{{ image.image }}</h2>
-    </div>
-    <div class="col-lg-3">
-    </div>
-</div>
-<br>
-<div class="row">
-    <div class="col-lg-6">
-        <canvas id="canvas" class="absolute"></canvas>
-    </div>
-    <div class="col-lg-6">
-        <div class="card">
-            <article class="card-group-item">
-                <header class="card-header">
-                    <div class="row ">
-                        <div class="col-lg-9 align-self-end">
-                            <h5 class="title"> 분석 옵션 </h5>
-                        </div>
-                        <div class="col-lg-3 align-self-center">
-                            <button type="button" class="btn btn-primary" id="btn_analysis">분석 시작</button>
-                        </div>
-                    </div>
-                </header>
-                <div class="card-body">
-                    <label><h6>균열 여부 결정 임계값</h6></label>
-                    <div class="range-slider">
-                        <input class="input-range" id="severity_threshold" type="range" value="200" min="0" max="255" style="width: calc(100% - 75px)">
-                        <span class="range-value"></span>
-                    </div>
-                    <br>
-                    <label><h6>Region 결합 방법</h6></label>
-                    <!--option selector-->
-                    <select class="form-control" id="select_region_connectivity">
-                        <option value="0">Connectivity - 4</option>
-                        <option value="1" selected>Connectivity - 8</option>
-                    </select>
-                    <br>
-                    <label><h6>Region Noise Filter 선택</h6></label>
-                    <!--option selector-->
-                    <select class="form-control" id="select_region_noise_filter">
-                        <option value="0">Nothing</option>
-                        <option value="1">Fill in the blank</option>
-                        <option value="2">Cut edge</option>
-                        <option value="3" selected>Cut edge and Fill in the black</option>
-                    </select>
-                    <br>
-                    <label><h6>Patch 크기</h6></label>
-                    <input type="number" class="form-control" id="input_patch_size" value="256">
-                </div>
-            </article>
+<div class="wrapper" style="padding-left: 30px; padding-right: 30px">
+    <div class="row">
+        <div class="col-lg-12">
+            <h2>{{ image.image }}</h2>
         </div>
-        <br>
-        <div class="card">
-            <article class="card-group-item">
-                <header class="card-header">
-                    <div class="row ">
-                        <div class="col-lg-9 align-self-end">
-                            <h5 class="title"> 보기 옵션 </h5>
-                        </div>
-                    </div>
-                </header>
-                <div class="card-body">
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="chkbox_origin">
-                        <label class="custom-control-label" for="chkbox_origin"> <h8>도로 이미지</h8> </label>
-                    </div>
-                </div>
-            </article>
-
-            <div class="card-group-item">
-                <article class="card-group">
-                    <div class="card">
-                        <header class="card-header"><h6 class="title"> 전문가 태깅 </h6></header>
-                        <div class="card-body">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="chkbox_seg_gt">
-                                <label class="custom-control-label" for="chkbox_seg_gt"> <h7>균열</h7> </label>
-                                </div>
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="chkbox_cls_gt">
-                                <label class="custom-control-label" for="chkbox_cls_gt"> <h7>균열 형식(Patch 별)</h7> </label>
+        <div class="col-lg-3">
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-lg-4">
+            <canvas id="canvas" class="absolute" style="border:2px solid gray;"></canvas>
+        </div>
+        <div class="col-lg-2">
+            <div class="card">
+                <article class="card-group-item">
+                    <header class="card-header">
+                        <div class="row ">
+                            <div class="col-lg-7 align-self-end">
+                                <h5 class="title"> 분석 옵션 </h5>
                             </div>
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="chkbox_region_gt">
-                                <label class="custom-control-label" for="chkbox_region_gt"> <h7>균열 형식(Region 별)</h7> </label>
+                            <div class="col-lg-5 align-self-center">
+                                <button type="button" class="btn btn-primary" id="btn_analysis">분석 시작</button>
                             </div>
                         </div>
-                    </div>
-                    <div class="card">
-                        <header class="card-header"><h6 class="title"> 분석 결과 </h6></header>
-                        <div class="card-body">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="chkbox_seg">
-                                <label class="custom-control-label" for="chkbox_seg"> <h7>균열</h7> </label>
-                                </div>
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="chkbox_cls">
-                                <label class="custom-control-label" for="chkbox_cls"> <h7>균열 형식(Patch 별)</h7> </label>
-                                <span class="badge badge-primary badge-pill" id="badge_cls" style="float:right"></span>
-                            </div>
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="chkbox_region">
-                                <label class="custom-control-label" for="chkbox_region" > <h7>균열 형식(Region 별)</h7> </label>
-                                <span class="badge badge-primary badge-pill" id="badge_region"  style="float:right"></span>
-                            </div>
+                    </header>
+                    <div class="card-body">
+                        <label><h6>균열 여부 결정 임계값</h6></label>
+                        <div class="range-slider">
+                            <input class="input-range" id="severity_threshold" type="range" value="200" min="0" max="255" style="width: calc(100% - 75px)">
+                            <span class="range-value"></span>
                         </div>
+                        <br>
+                        <label><h6>Region 결합 방법</h6></label>
+                        <!--option selector-->
+                        <select class="form-control" id="select_region_connectivity">
+                            <option value="0">Connectivity - 4</option>
+                            <option value="1" selected>Connectivity - 8</option>
+                        </select>
+                        <br>
+                        <label><h6>Region Noise Filter Option</h6></label>
+                        <!--option selector-->
+                        <select class="form-control" id="select_region_noise_filter">
+                            <option value="0">Nothing</option>
+                            <option value="1">구멍 채우기</option>
+                            <option value="2">모서리 자르기</option>
+                            <option value="3" selected>모서리 자르기 및 구멍 채우기</option>
+                        </select>
+                        <br>
                     </div>
                 </article>
             </div>
+            <br>
+            <div class="card">
+                <article class="card-group-item">
+                    <header class="card-header">
+                        <div class="row ">
+                            <div class="col-lg-9 align-self-end">
+                                <h5 class="title"> 보기 옵션 </h5>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="card-body">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="chkbox_origin">
+                            <label class="custom-control-label" for="chkbox_origin"> <h8>도로 이미지</h8> </label>
+                        </div>
+                    </div>
+                </article>
+
+                <!--<div class="card-group-item">-->
+                    <!--<article class="card-group">-->
+                        <!--<div class="card">-->
+                            <!--<header class="card-header"><h6 class="title"> 전문가 태깅 </h6></header>-->
+                            <!--<div class="card-body">-->
+                                <!--<div class="custom-control custom-checkbox">-->
+                                    <!--<input type="checkbox" class="custom-control-input" id="chkbox_seg_gt">-->
+                                    <!--<label class="custom-control-label" for="chkbox_seg_gt"> <h7>균열</h7> </label>-->
+                                    <!--</div>-->
+                                <!--<div class="custom-control custom-checkbox">-->
+                                    <!--<input type="checkbox" class="custom-control-input" id="chkbox_cls_gt">-->
+                                    <!--<label class="custom-control-label" for="chkbox_cls_gt"> <h7>균열 형식(Patch 별)</h7> </label>-->
+                                <!--</div>-->
+                                <!--<div class="custom-control custom-checkbox">-->
+                                    <!--<input type="checkbox" class="custom-control-input" id="chkbox_region_gt">-->
+                                    <!--<label class="custom-control-label" for="chkbox_region_gt"> <h7>균열 형식(Region 별)</h7> </label>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</div>-->
+
+                    <!--</article>-->
+                <!--</div>-->
+                <div class="card-group-item">
+                    <article class="card-group">
+                        <div class="card">
+                            <header class="card-header"><h6 class="title"> 분석 결과 </h6></header>
+                            <div class="card-body">
+                                <label><h6>균열 이미지</h6></label>
+                                <div class="custom-control custom-radio">
+                                  <input type="radio" class="custom-control-input" id="radio_seg_no_th" name="group_of_seg_image">
+                                  <label class="custom-control-label" for="radio_seg_no_th"><h7>No Threshold</h7></label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                  <input type="radio" class="custom-control-input" id="radio_seg_th" name="group_of_seg_image">
+                                  <label class="custom-control-label" for="radio_seg_th">Thresholding</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                  <input type="radio" class="custom-control-input" id="radio_seg_rigion" name="group_of_seg_image">
+                                  <label class="custom-control-label" for="radio_seg_rigion">Region Highlight</label>
+                                </div>
+
+                                <br>
+                                <label><h6>균열 형식</h6></label>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_cls">
+                                    <label class="custom-control-label" for="chkbox_cls"> <h7>Patch 별</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_cls" style="float:right"></span>
+                                </div>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_region">
+                                    <label class="custom-control-label" for="chkbox_region" > <h7>Region 별 Patch</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_region"  style="float:right"></span>
+                                </div>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_region_bbox">
+                                    <label class="custom-control-label" for="chkbox_region_bbox" > <h7>Region 별 Bounding Box</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_region_bbox"  style="float:right"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <br>
+            <div class="text-center" id="apply_wrapper">
+                <button type="button" id="btn_apply" class="btn btn-outline-primary">적용</button>
+            </div>
         </div>
-        <br>
-        <div class="text-center" id="apply_wrapper">
-            <button type="button" id="btn_apply" class="btn btn-outline-primary">적용</button>
+        <div class="col-lg-6">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th> Region </th>
+                        <th> 균열종류 </th>
+                        <th> 균열 폭(mm) </th>
+                        <th> 균열 길이(mm) </th>
+                        <th> 균열 면적(mm²) </th>
+                        <th> 심각도 </th>
+                    </tr>
+                </thead>
+                <tbody id="table_severity">
+
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-<br>
-<table class="table">
-    <thead>
-        <tr>
-            <th> Region </th>
-            <th> 균열종류 </th>
-            <th> 균열 폭 </th>
-            <th> 균열 길이 </th>
-            <th> 균열 면적 </th>
-            <th> 심각도 </th>
-        </tr>
-    </thead>
-    <tbody id="table_severity">
+    <br>
 
-    </tbody>
-</table>
+
+</div>
 {% endblock content %}
 
 {% block jquery %}
-<script type="text/javascript" src="{% static "canvas/trackTransforms.js" %}"></script>
 <script>
 var range = $('.input-range'),
     value = $('.range-value');
@@ -229,6 +190,7 @@ d3.select('#chkbox_origin').property('checked', true);
 
 var img = [];
 var img_seg = new Image();
+var img_seg_th = new Image();
 var img_seg_gt = new Image();
 var img_origin = new Image();
 
@@ -271,6 +233,7 @@ function get_regions() {
         success: function (response) {
             regions = response['regions']
             d3.select("#badge_region").text(regions.length)
+            d3.select("#badge_region_bbox").text(regions.length)
 
             for (var i = 0; i < regions.length; i++) {
                 var r = (Math.floor(Math.random() * 256));
@@ -284,13 +247,23 @@ function get_regions() {
             }
             var table_severity = d3.select("#table_severity");
             for (var i = 0; i < regions.length; i++) {
+                if (regions[i]['region_type'] == "patch") { text = "PAT"; }
+                else if (regions[i]['region_type'] == "ac") { text = "AC"; }
+                else if (regions[i]['region_type'] == "lc") { text = "LC"; }
+                else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+
                 var tr = table_severity.append("tr");
                 tr.append("td").text(regions[i]['region_num']);
-                tr.append("td").text(regions[i]['region_type']);
-                tr.append("td").text(regions[i]['distress_width']);
-                tr.append("td").text(regions[i]['distress_height']);
-                tr.append("td").text(regions[i]['distress_area']);
-                tr.append("td").text(regions[i]['distress_serverity']);
+                tr.append("td").text(text);
+                // tr.append("td").text(regions[i]['total_max_width']);
+                // tr.append("td").text(regions[i]['total_average_width']);
+                // tr.append("td").text(regions[i]['max_width_x']);
+                // tr.append("td").text(regions[i]['max_width_y']);
+                tr.append("td").text(regions[i]['maxx'] - regions[i]['minx']);
+                tr.append("td").text(regions[i]['maxy'] - regions[i]['miny']);
+                tr.append("td").text((regions[i]['maxx'] - regions[i]['minx']) * (regions[i]['maxy'] - regions[i]['miny']));
+
+                // tr.append("td").text(regions[i]['miny']);
             }
         }
     });
@@ -298,11 +271,12 @@ function get_regions() {
 get_cracks();
 get_regions();
 
-canvas.width = 500;
-canvas.height = 800;
+canvas.width = 750;
+canvas.height = 1000;
 
 var is_crack_rect = false;
 var is_region_rect = false;
+var is_region_bbox = false;
 var alpha = 1;
 
 img_origin.onload = function () {
@@ -336,7 +310,6 @@ img_origin.onload = function () {
                     else if (cracks[i]['label'] == "lane") { rect_color = colors[2], text_color = colors[2], text = "LANE"; }
                     else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
                     else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
-                    // else if (cracks[i]['label'] == "detail_norm") { rect_color = colors[0], text_color = colors[5], text = "CR"; }
                     else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[5], text = "TC"; }
 
                     ctx.font = "90px Arial";
@@ -353,11 +326,9 @@ img_origin.onload = function () {
             }
         }
 
-
-
         if (is_region_rect == true) {
             for (var i = 0; i < regions.length; i++) {
-                if (regions[i]['patchs'].length > 1) {
+                if (regions[i]['patchs'].length > 0) {
                     rect_color = region_colors[i];
                     text_color = region_text_colors[i];
                     var text_region_num = regions[i]['region_num'];
@@ -379,6 +350,48 @@ img_origin.onload = function () {
                         ctx.rect(region['x'], region['y'], region['w'], region['h']);
                         ctx.stroke();
                     }
+                    var min_x = Math.min.apply(null, xs);
+                    var min_y = Math.min.apply(null, ys);
+                    var max_x = Math.max.apply(null, xs);
+                    var max_y = Math.max.apply(null, ys);
+                    var center_x = min_x + (max_x - min_x)/2;
+                    var center_y = min_y + (max_y - min_y)/2;
+
+                    ctx.font = "300px Arial";
+                    ctx.fillStyle = text_color;
+                    ctx.textAlign = "center";
+                    ctx.fillText(regions[i]['region_type'], center_x + 130, center_y + 130);
+                    ctx.fillText("(" + text_region_num + ")", center_x + 130, center_y  + 430);
+                }
+            }
+        }
+
+        if (is_region_bbox == true) {
+            for (var i = 0; i < regions.length; i++) {
+                if (regions[i]['patchs'].length > 1) {
+                    rect_color = region_colors[i];
+                    text_color = region_text_colors[i];
+                    var text_region_num = regions[i]['region_num'];
+
+                    if (regions[i]['region_type'] == "patch") { text = "PAT"; }
+                    else if (regions[i]['region_type'] == "ac") { text = "AC"; }
+                    else if (regions[i]['region_type'] == "lc") { text = "LC"; }
+                    else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+                    var xs = [];
+                    var ys = [];
+                    for (var j = 0; j < regions[i]['patchs'].length; j++) {
+                        var region = regions[i]['patchs'][j];
+                        xs.push(region['x']);
+                        ys.push(region['y']);
+                    }
+
+                    ctx.beginPath();
+                    ctx.fillStyle = rect_color;
+                    ctx.lineWidth = 30;
+                    ctx.strokeStyle = rect_color;
+                    ctx.rect(regions[i]['minx'], regions[i]['miny'], regions[i]['maxx'] - regions[i]['minx'], regions[i]['maxy'] - regions[i]['miny']);
+                    ctx.stroke();
+
                     var min_x = Math.min.apply(null, xs);
                     var min_y = Math.min.apply(null, ys);
                     var max_x = Math.max.apply(null, xs);
@@ -451,20 +464,23 @@ img_origin.onload = function () {
     canvas.addEventListener('mousewheel', handleScroll, false);
     init()
     function init() {
-        ctx.scale(0.1, 0.1)
+        ctx.scale(1, 1)
         redraw(img)
     }
 
     $("#btn_apply").click(function(e) {
         img.splice(0, img.length)
-        if (d3.select("#chkbox_seg").property("checked") == true) {
-            img.push(img_seg);
-        }
         if (d3.select("#chkbox_origin").property("checked") == true) {
             img.push(img_origin);
         }
+        if (d3.select("#radio_seg_no_th").property("checked") == true) {
+            img.push(img_seg);
+        }
+        if (d3.select("#radio_seg_th").property("checked") == true) {
+            img.push(img_seg_th);
+        }
         if (img.length > 1) {
-            alpha = 0.7;
+            // alpha = 0.7;
         }
         else {
             alpha = 1;
@@ -480,18 +496,25 @@ img_origin.onload = function () {
         } else {
             is_region_rect = false;
         }
+
+        if (d3.select("#chkbox_region_bbox").property("checked") == true) {
+            is_region_bbox = true;
+        } else {
+            is_region_bbox = false;
+        }
         redraw(img)
     });
 };
 img_origin.src = "/media/{{image.image}}";
 
-if ("{{is_gt}}" == "False") {
-    d3.select("#chkbox_cls_gt").property("disabled", true)
-    d3.select("#chkbox_seg_gt").property("disabled", true)
-    d3.select("#chkbox_region_gt").property("disabled", true)
-} else {
-    img_seg_gt.src = "/media/{{gt_result}}";
-}
+
+// if ("{{is_gt}}" == "False") {
+//     d3.select("#chkbox_cls_gt").property("disabled", true)
+//     d3.select("#chkbox_seg_gt").property("disabled", true)
+//     d3.select("#chkbox_region_gt").property("disabled", true)
+// } else {
+//     img_seg_gt.src = "/media/{{gt_result}}";
+// }
 if ("{{is_analyzed}}" == "False") {
     d3.select("#chkbox_cls").property("disabled", true)
     d3.select("#chkbox_seg").property("disabled", true)
@@ -499,7 +522,10 @@ if ("{{is_analyzed}}" == "False") {
 }
 else {
     img_seg.src = "/media/{{seg_result}}";
+    img_seg_th.src = "/media/{{seg_th_result}}";
 }
+console.log("/media/{{seg_result}}")
+console.log("/media/{{seg_th_result}}")
 $("#btn_analysis").click(function(e) {
     var $this = $(this);
     var loadingText = '<i class="fa fa-circle-o-notch fa-spin"></i> 분석 중';
@@ -509,7 +535,6 @@ $("#btn_analysis").click(function(e) {
         var select_region_connectivity = document.getElementById("select_region_connectivity");
         var select_region_noise_filter = document.getElementById("select_region_noise_filter");
 
-        var patch_size = document.getElementById("input_patch_size").value;
         var region_connectivity = select_region_connectivity.options[select_region_connectivity.selectedIndex].value;
         var region_noise_filter = select_region_noise_filter.options[select_region_noise_filter.selectedIndex].value;
         var severity_threshold =  document.getElementById("severity_threshold").value;
@@ -523,7 +548,6 @@ $("#btn_analysis").click(function(e) {
                 region_connectivity: region_connectivity,
                 region_noise_filter: region_noise_filter,
                 severity_threshold: severity_threshold,
-                patch_size: patch_size
             },
             success: function (response) {
                 get_cracks();
@@ -538,19 +562,10 @@ $("#btn_analysis").click(function(e) {
 });
 
 </script>
+<link rel="stylesheet" type="text/css" href="{% static "css/imagedetail.css" %}">
+<script type="text/javascript" src="{% static "canvas/trackTransforms.js" %}"></script>
+
 {% endblock jquery %}
-
-{% if is_analyzed == False %}
-<script>
-
-</script>
-{% endif %}
-
-{% if is_gt == False %}
-<script>
-
-</script>
-{% endif %}
 
 {% block footer %}
     <span class="text-muted">Footer From Front Page.</span>
