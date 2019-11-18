@@ -87,6 +87,7 @@ def get_cracks(request) :
             dict_crack['y'] = crack.y
             dict_crack['w'] = crack.w
             dict_crack['h'] = crack.h
+            dict_crack['severity'] = crack.severity
             cracks.append(dict_crack)
     return HttpResponse(json.dumps({"cracks": cracks}), 'application/json')
 
@@ -100,14 +101,8 @@ def get_regions(request) :
             dict_region['region_num'] = region.region_num
             dict_region['region_type'] = region.region_type
             dict_region['patchs'] = []
-            dict_region['total_max_width'] = region.total_max_width
-            dict_region['total_average_width'] = region.total_average_width
-            dict_region['max_width_x'] = region.max_width_x
-            dict_region['max_width_y'] = region.max_width_y
-            dict_region['maxx'] = region.maxx
-            dict_region['maxy'] = region.maxy
-            dict_region['minx'] = region.minx
-            dict_region['miny'] = region.miny
+            dict_region['severity_results'] = region.severity_results
+            dict_region['patching_results'] = region.patching_results
             patchs = RegionPositionModel.objects.filter(region_model=region)
             for patch in patchs:
                 dict_patch = {}
@@ -151,7 +146,6 @@ def analysis(request) :
         for result in cls_result :
             clsResultModel = ClsResultModel.objects.create(image=image)
 
-            final_label = ''
             label_list = []
             label_names = ['crack', 'lane', 'patch', 'normal']
             for label in result['label']:
@@ -177,6 +171,8 @@ def analysis(request) :
             clsResultModel.y = result['position']['y']
             clsResultModel.w = result['position']['w']
             clsResultModel.h = result['position']['h']
+            if final_label in ['lc', 'tc', 'ac'] :
+                clsResultModel.severity = result['severity']
             clsResultModel.save()
 
         # print(region_results)
@@ -185,16 +181,33 @@ def analysis(request) :
             regionResultModel = RegionResultModel.objects.create(image=image)
             regionResultModel.region_num = region['region']
             regionResultModel.region_type = region['region_type']
-            try :
-                regionResultModel.total_max_width = region['total_max_width']
-                regionResultModel.total_average_width = region['total_average_width']
-                regionResultModel.max_width_x = region['max_width_x']
-                regionResultModel.max_width_y = region['max_width_y']
-                regionResultModel.maxx = region['maxx']
-                regionResultModel.maxy = region['maxy']
-                regionResultModel.minx = region['minx']
-                regionResultModel.miny = region['miny']
-            except :
+            if region['region_type'] in ['lc', 'tc', 'ac'] :
+                severity_results = {}
+                severity_results['total_max_width'] = region['total_max_width']
+                severity_results['total_average_width'] = region['total_average_width']
+                severity_results['max_width_x'] = region['max_width_x']
+                severity_results['max_width_y'] = region['max_width_y']
+                severity_results['maxx'] = region['maxx']
+                severity_results['maxy'] = region['maxy']
+                severity_results['minx'] = region['minx']
+                severity_results['miny'] = region['miny']
+                severity_results['severity'] = region['severity']
+                regionResultModel.severity_results = severity_results
+            elif region['region_type'] == 'patch' :
+                patching_results = {}
+                patching_results['area'] = region['area']
+                patching_results['patching_bbox_minx'] = region['patching_bbox_minx']
+                patching_results['patching_bbox_miny'] = region['patching_bbox_miny']
+                patching_results['patching_bbox_maxx'] = region['patching_bbox_maxx']
+                patching_results['patching_bbox_maxy'] = region['patching_bbox_maxy']
+                patching_results['patching_region_minx'] = region['patching_region_minx']
+                patching_results['patching_region_miny'] = region['patching_region_miny']
+                patching_results['patching_region_maxx'] = region['patching_region_maxx']
+                patching_results['patching_region_maxy'] = region['patching_region_maxy']
+                patching_results['patching_seg_image'] = region['patching_seg_image']
+                patching_results['contours'] = region['contours']
+                regionResultModel.patching_results = patching_results
+            else :
                 print(region['region_type'])
 
             for patch in region_area :
@@ -221,7 +234,8 @@ def analysis(request) :
         seg_img = cv2.imread(seg_img_path, -1)
         seg_img_th = cv2.imread(seg_img_th_path, -1)
 
-        seg_img[seg_img <= 0] = 0
+        seg_img[seg_img <= 127] = 0
+        seg_img[seg_img > 127] = 255
         tmp = cv2.cvtColor(seg_img, cv2.COLOR_BGR2GRAY)
         _, alpha = cv2.threshold(tmp, 0, 127, cv2.THRESH_BINARY)
         b, g, r = cv2.split(seg_img)
@@ -229,6 +243,7 @@ def analysis(request) :
         seg_img = cv2.merge(rgba, 4)
 
         seg_img_th[seg_img_th <= severity_threshold] = 0
+        seg_img_th[seg_img_th > severity_threshold] = 255
         tmp = cv2.cvtColor(seg_img_th, cv2.COLOR_BGR2GRAY)
         _, alpha = cv2.threshold(tmp, 0, 200, cv2.THRESH_BINARY)
         b, g, r = cv2.split(seg_img_th)
