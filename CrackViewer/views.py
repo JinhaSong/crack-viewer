@@ -115,6 +115,20 @@ def get_regions(request) :
             regions.append(dict_region)
     return HttpResponse(json.dumps({"regions": regions}), 'application/json')
 
+
+@csrf_exempt
+def get_patching(request) :
+    regions = []
+    if request.method == "POST" :
+        region_result = RegionResultModel.objects.filter(image__pk=request.POST['image_pk']).filter(region_type='patch')
+        for region in region_result :
+            dict_region = {}
+            dict_region['region_num'] = region.region_num
+            dict_region['patchs'] = []
+            dict_region['patching_results'] = region.patching_results
+    return HttpResponse(json.dumps({"regions": regions}), 'application/json')
+
+
 @csrf_exempt
 def analysis(request) :
     result = []
