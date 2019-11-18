@@ -142,25 +142,58 @@
                                     <label class="custom-control-label" for="chkbox_region_bbox" > <h7>Region 별 Bounding Box</h7> </label>
                                     <span class="badge badge-primary badge-pill" id="badge_region_bbox"  style="float:right"></span>
                                 </div>
+
+                                <br>
+                                <label><h6>균열 최대 지점</h6></label>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_severity_point">
+                                    <label class="custom-control-label" for="chkbox_severity_point" > <h7>Patch 별</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_severity_point"  style="float:right"></span>
+                                </div>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_region_severity_point">
+                                    <label class="custom-control-label" for="chkbox_region_severity_point" > <h7>Region 별</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_region_severity_point"  style="float:right"></span>
+                                </div>
+
+                                <br>
+                                <label><h6>Patching</h6></label>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_bbox">
+                                    <label class="custom-control-label" for="chkbox_patching_bbox"> <h7>Bounding box</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_patching_bbox" style="float:right"></span>
+                                </div>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_contour">
+                                    <label class="custom-control-label" for="chkbox_patching_contour" > <h7>외곽선</h7> </label>
+                                    <span class="badge badge-primary badge-pill" id="badge_patching_contour"  style="float:right"></span>
+                                </div>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_seg">
+                                    <label class="custom-control-label" for="chkbox_patching_seg" > <h7></h7>Segmentation</label>
+                                    <span class="badge badge-primary badge-pill" id="badge_patching_seg"  style="float:right"></span>
+                                </div>
                             </div>
                         </div>
                     </article>
                 </div>
             </div>
             <br>
-            <div class="text-center" id="apply_wrapper">
-                <button type="button" id="btn_apply" class="btn btn-outline-primary">적용</button>
-            </div>
+            <!--<div class="text-center" id="apply_wrapper">-->
+                <!--<button type="button" id="btn_apply" class="btn btn-outline-primary">적용</button>-->
+            <!--</div>-->
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-5">
             <table class="table">
                 <thead>
                     <tr>
                         <th> Region </th>
                         <th> 균열종류 </th>
-                        <th> 균열 폭(mm) </th>
-                        <th> 균열 길이(mm) </th>
-                        <th> 균열 면적(mm²) </th>
+                        <th> 폭(mm) </th>
+                        <th> 길이(mm) </th>
+                        <th> 면적(mm²) </th>
+                        <th> 평균 심각도 폭(mm) </th>
+                        <th> 최대 심각도 폭(mm) </th>
                         <th> 심각도 </th>
                     </tr>
                 </thead>
@@ -253,21 +286,70 @@ function get_regions() {
                 else if (regions[i]['region_type'] == "tc") { text = "TC"; }
 
                 var tr = table_severity.append("tr");
-                tr.append("td").text(regions[i]['region_num']);
-                tr.append("td").text(text);
-                // tr.append("td").text(regions[i]['total_max_width']);
-                // tr.append("td").text(regions[i]['total_average_width']);
-                // tr.append("td").text(regions[i]['max_width_x']);
-                // tr.append("td").text(regions[i]['max_width_y']);
-                tr.append("td").text(regions[i]['maxx'] - regions[i]['minx']);
-                tr.append("td").text(regions[i]['maxy'] - regions[i]['miny']);
-                tr.append("td").text((regions[i]['maxx'] - regions[i]['minx']) * (regions[i]['maxy'] - regions[i]['miny']));
+                tr.append("td").attr("class", "region_num").text(regions[i]['region_num']);
+                tr.append("td").attr("class", "region_type").text(text);
 
-                // tr.append("td").text(regions[i]['miny']);
+                var maxx = regions[i]['severity_results']['maxx'];
+                var maxy = regions[i]['severity_results']['maxy'];
+                var minx = regions[i]['severity_results']['minx'];
+                var miny = regions[i]['severity_results']['miny'];
+                var total_average_width = regions[i]['severity_results']['total_average_width'];
+                var total_max_width = regions[i]['severity_results']['total_max_width'];
+                var max_width_x = regions[i]['severity_results']['max_width_x'];
+                var max_width_y = regions[i]['severity_results']['max_width_y'];
+                var severity = capitalizeFirstLetter(String(regions[i]['severity_results']['severity']));
+
+
+                var width = maxx - minx;
+                var height = maxy - miny;
+                if (text == "PAT") {
+                    tr.append("td").attr("class", "severity_width").text("-");
+                    tr.append("td").attr("class", "severity_height").text("-");
+                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "severity_severity").text("-");
+                }
+                else {
+                    tr.append("td").attr("class", "crack_width").text(comma(width));
+                    tr.append("td").attr("class", "crack_height").text(comma(height));
+                    tr.append("td").attr("class", "crack_area").text(comma(width * height));
+                    tr.append("td").attr("class", "crack_area").text(total_average_width.toFixed(6));
+                    tr.append("td").attr("class", "crack_area").text(total_max_width);
+                    tr.append("td").attr("class", "crack_severity").text(severity);
+                }
             }
         }
     });
 }
+
+function get_patching() {
+    $.ajax({
+        url: "{% url 'get_regions' %}",
+        type: "POST",
+        data: {
+            name: 'get_regions',
+            image_pk: '{{ image_pk }}',
+        },
+        success: function (response) {
+            regions = response['regions']
+            d3.select("#badge_region").text(regions.length)
+            d3.select("#badge_region_bbox").text(regions.length)
+
+            for (var i = 0; i < regions.length; i++) {
+                var r = (Math.floor(Math.random() * 256));
+                var g = (Math.floor(Math.random() * 256));
+                var b = (Math.floor(Math.random() * 256));
+                var rev_r = 255 - r;
+                var rev_g = 255 - g;
+                var rev_b = 255 - b;
+                region_colors.push('rgb(' + r + ',' + g + ',' + b + ')');
+                region_text_colors.push('rgb(' + rev_r + ',' + rev_g + ',' + rev_b + ')');
+            }
+        }
+    });
+}
+
 get_cracks();
 get_regions();
 
@@ -277,6 +359,8 @@ canvas.height = 1000;
 var is_crack_rect = false;
 var is_region_rect = false;
 var is_region_bbox = false;
+var is_severity_point = false;
+var is_region_severity_point = false;
 var alpha = 1;
 
 img_origin.onload = function () {
@@ -296,6 +380,11 @@ img_origin.onload = function () {
         ctx.restore();
 
         ctx.globalAlpha = alpha;
+
+        ctx.beginPath();
+        ctx.fillRect(0, 0, img_origin.width, img_origin.height);
+        ctx.fillStyle = "black";
+        ctx.stroke();
 
         for (var i = 0; i < img.length; i++) {
             ctx.drawImage(img[i], 0, 0);
@@ -389,7 +478,11 @@ img_origin.onload = function () {
                     ctx.fillStyle = rect_color;
                     ctx.lineWidth = 30;
                     ctx.strokeStyle = rect_color;
-                    ctx.rect(regions[i]['minx'], regions[i]['miny'], regions[i]['maxx'] - regions[i]['minx'], regions[i]['maxy'] - regions[i]['miny']);
+                    ctx.rect(
+                        regions[i]['severity_results']['minx'],
+                        regions[i]['severity_results']['miny'],
+                        regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'],
+                        regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny']);
                     ctx.stroke();
 
                     var min_x = Math.min.apply(null, xs);
@@ -407,6 +500,43 @@ img_origin.onload = function () {
                 }
             }
         }
+
+        if (is_severity_point == true) {
+            for (var i = 0; i < cracks.length; i++) {
+                var label = cracks[i]['label']
+                if (label != "lc" || label != "tc" || label != "ac") {
+                    var x = cracks[i]['x'];
+                    var y = cracks[i]['y'];
+                    var max_width_x = cracks[i]['severity']['max_width_x'];
+                    var max_width_y = cracks[i]['severity']['max_width_y'];
+                    if (max_width_x != 0 && max_width_y != 0) {
+                        ctx.beginPath();
+                        ctx.arc(x + max_width_x, y + max_width_y, 10, 0, Math.PI * 2, false); //arc(시작 X좌표 , 시작Y좌표 , 반지름 크기, 시작각도, 끝 각도 , 시계or반시계 방향true/false)
+                        ctx.fillStyle = "red";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        if (is_region_severity_point == true) {
+            for (var i = 0; i < regions.length; i++) {
+                var label = regions[i]['region_type']
+                if (label != "lc" || label != "tc" || label != "ac") {
+                    var max_width_x = regions[i]['severity_results']['max_width_x'];
+                    var max_width_y = regions[i]['severity_results']['max_width_y'];
+                    if (max_width_x != 0 && max_width_y != 0) {
+                        ctx.beginPath();
+                        ctx.arc(max_width_x, max_width_y, 10, 0, Math.PI * 2, false); //arc(시작 X좌표 , 시작Y좌표 , 반지름 크기, 시작각도, 끝 각도 , 시계or반시계 방향true/false)
+                        ctx.fillStyle = "yellow";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+        ctx.fillStyle = "black";
     }
     redraw(img);
 
@@ -467,40 +597,93 @@ img_origin.onload = function () {
         ctx.scale(1, 1)
         redraw(img)
     }
-
-    $("#btn_apply").click(function(e) {
+    $("#chkbox_origin").click(function(e) {
         img.splice(0, img.length)
         if (d3.select("#chkbox_origin").property("checked") == true) {
             img.push(img_origin);
-        }
-        if (d3.select("#radio_seg_no_th").property("checked") == true) {
-            img.push(img_seg);
-        }
-        if (d3.select("#radio_seg_th").property("checked") == true) {
-            img.push(img_seg_th);
-        }
-        if (img.length > 1) {
-            // alpha = 0.7;
+            if (d3.select("#radio_seg_no_th").property("checked") == true) {
+                img.push(img_seg);
+            }
+            if (d3.select("#radio_seg_th").property("checked") == true) {
+                img.push(img_seg_th);
+            }
         }
         else {
-            alpha = 1;
+            if (d3.select("#radio_seg_no_th").property("checked") == true) {
+                img.push(img_seg);
+            }
+            if (d3.select("#radio_seg_th").property("checked") == true) {
+                img.push(img_seg_th);
+            }
         }
+        redraw(img)
+    });
+    $("#radio_seg_no_th").click(function(e) {
+        img.splice(0, img.length)
+        if (d3.select("#radio_seg_no_th").property("checked") == true) {
+            if (d3.select("#chkbox_origin").property("checked") == true) {
+                img.push(img_origin);
+                img.push(img_seg);
+            }
+            else {
+                img.push(img_seg);
+            }
+        }
+        redraw(img)
+    });
+    $("#radio_seg_th").click(function(e) {
+        img.splice(0, img.length)
+        if (d3.select("#radio_seg_th").property("checked") == true) {
+            if (d3.select("#chkbox_origin").property("checked") == true) {
+                img.push(img_origin);
+                img.push(img_seg_th);
+            }
+            else {
+                img.splice(0, img.length)
+                img.push(img_seg_th);
+            }
+        }
+        redraw(img)
+    });
+    $("#chkbox_cls").click(function(e) {
         if (d3.select("#chkbox_cls").property("checked") == true) {
             is_crack_rect = true;
         } else {
             is_crack_rect = false;
         }
-
+        redraw(img)
+    });
+    $("#chkbox_region").click(function(e) {
         if (d3.select("#chkbox_region").property("checked") == true) {
             is_region_rect = true;
         } else {
             is_region_rect = false;
         }
-
+        redraw(img)
+    });
+    $("#chkbox_region_bbox").click(function(e) {
         if (d3.select("#chkbox_region_bbox").property("checked") == true) {
             is_region_bbox = true;
         } else {
             is_region_bbox = false;
+        }
+        redraw(img)
+    });
+
+    $("#chkbox_severity_point").click(function(e) {
+        if (d3.select("#chkbox_severity_point").property("checked") == true) {
+            is_severity_point = true;
+        } else {
+            is_severity_point = false;
+        }
+        redraw(img)
+    });
+
+    $("#chkbox_region_severity_point").click(function(e) {
+        if (d3.select("#chkbox_region_severity_point").property("checked") == true) {
+            is_region_severity_point = true;
+        } else {
+            is_region_severity_point = false;
         }
         redraw(img)
     });
@@ -524,8 +707,6 @@ else {
     img_seg.src = "/media/{{seg_result}}";
     img_seg_th.src = "/media/{{seg_th_result}}";
 }
-console.log("/media/{{seg_result}}")
-console.log("/media/{{seg_th_result}}")
 $("#btn_analysis").click(function(e) {
     var $this = $(this);
     var loadingText = '<i class="fa fa-circle-o-notch fa-spin"></i> 분석 중';
@@ -564,6 +745,7 @@ $("#btn_analysis").click(function(e) {
 </script>
 <link rel="stylesheet" type="text/css" href="{% static "css/imagedetail.css" %}">
 <script type="text/javascript" src="{% static "canvas/trackTransforms.js" %}"></script>
+<script type="text/javascript" src="{% static "canvas/strPreprocessing.js" %}"></script>
 
 {% endblock jquery %}
 
