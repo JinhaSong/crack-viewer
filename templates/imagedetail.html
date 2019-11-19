@@ -24,7 +24,7 @@
     </div>
     <br>
     <div class="row">
-        <div class="col-lg-5">
+        <div class="col-lg-5.5">
             <canvas id="canvas" class="absolute" style="border:2px solid gray;"></canvas>
         </div>
         <div class="col-lg-2">
@@ -111,22 +111,22 @@
                         <div class="card">
                             <header class="card-header"><h6 class="title"> 분석 결과 </h6></header>
                             <div class="card-body">
-                                <label><h6>균열 이미지</h6></label>
+                                <label><h6><strong>균열 이미지</strong></h6></label>
                                 <div class="custom-control custom-radio">
                                   <input type="radio" class="custom-control-input" id="radio_seg_no_th" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_no_th"><h7>No Threshold</h7></label>
+                                  <label class="custom-control-label" for="radio_seg_no_th"><h7>확률 값으로 보기</h7></label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                   <input type="radio" class="custom-control-input" id="radio_seg_th" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_th">Thresholding</label>
+                                  <label class="custom-control-label" for="radio_seg_th">균열 임계값 이상만 보기</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                   <input type="radio" class="custom-control-input" id="radio_seg_hl" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_hl">Region Highlight</label>
+                                  <label class="custom-control-label" for="radio_seg_hl">영역별 따로 보기</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                   <input type="radio" class="custom-control-input" id="radio_seg_nothing" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_nothing">Nothing</label>
+                                  <label class="custom-control-label" for="radio_seg_nothing">표시하지 않음</label>
                                 </div>
                                 <!--<div class="custom-control custom-radio">-->
                                   <!--<input type="radio" class="custom-control-input" id="radio_seg_hl_th" name="group_of_seg_image">-->
@@ -134,57 +134,49 @@
                                 <!--</div>-->
 
                                 <br>
-                                <label><h6>균열 형식</h6></label>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_cls">
-                                    <label class="custom-control-label" for="chkbox_cls"> <h7>Patch 별</h7> </label>
+                                <div>
+                                    <label><h6><strong>Patch 단위 분석 결과</strong></h6></label>
                                     <span class="badge badge-primary badge-pill" id="badge_cls" style="float:right"></span>
                                 </div>
                                 <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_region">
-                                    <label class="custom-control-label" for="chkbox_region" > <h7>Region 별 Patch</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_region"  style="float:right"></span>
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_cls">
+                                    <label class="custom-control-label" for="chkbox_cls"> <h7>균열 종류(TC/LC/AC/PAT) 보기</h7> </label>
                                 </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_region_bbox">
-                                    <label class="custom-control-label" for="chkbox_region_bbox" > <h7>Region 별 Bounding Box</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_region_bbox"  style="float:right"></span>
-                                </div>
-
-                                <br>
-                                <label><h6>균열 최대 지점</h6></label>
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input" id="chkbox_severity_point">
-                                    <label class="custom-control-label" for="chkbox_severity_point" > <h7>Patch 별</h7> </label>
+                                    <label class="custom-control-label" for="chkbox_severity_point" > <h7>균열이 가장 넓은 곳 보기</h7> </label>
                                     <span class="badge badge-primary badge-pill" id="badge_severity_point"  style="float:right"></span>
+                                </div>
+                                
+                                <br>
+                                <div>
+                                    <label><h6><strong>영역 단위 분석 결과</strong></h6></label>
+                                    <span class="badge badge-primary badge-pill" id="badge_region"  style="float:right"></span>
+                                </div>
+                                <label style="padding-left: 20px"><h8>영역 보기 방법</h8></label>
+                                <div style="padding-left: 40px; padding-bottom: 10px">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" class="custom-control-input" id="radio_region_bbox" name="group_of_region">
+                                    <label class="custom-control-label" for="radio_region_bbox" > <h7>Bounding Box</h7> </label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" class="custom-control-input" id="radio_region" name="group_of_region" >
+                                    <label class="custom-control-label" for="radio_region" > <h7>Region</h7> </label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" class="custom-control-input" id="radio_region_nothing" name="group_of_region" >
+                                    <label class="custom-control-label" for="radio_region_nothing" > <h7>표시하지 않음</h7> </label>
+                                </div>
+                                </div>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="chkbox_region">
+                                    <label class="custom-control-label" for="chkbox_region" > <h7>균열 종류(TC/LC/AC/PAT) 보기</h7> </label>
+
                                 </div>
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input" id="chkbox_region_severity_point">
-                                    <label class="custom-control-label" for="chkbox_region_severity_point" > <h7>Region 별</h7> </label>
+                                    <label class="custom-control-label" for="chkbox_region_severity_point" > <h7>균열이 가장 넓은곳 보기</h7> </label>
                                     <span class="badge badge-primary badge-pill" id="badge_region_severity_point"  style="float:right"></span>
-                                </div>
-
-                                <br>
-                                <label><h6>Patching</h6></label>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_bbox">
-                                    <label class="custom-control-label" for="chkbox_patching_bbox"> <h7>Bounding box</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_patching_bbox" style="float:right"></span>
-                                </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_region">
-                                    <label class="custom-control-label" for="chkbox_patching_region" > <h7>Region</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_patching_region"  style="float:right"></span>
-                                </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_contour">
-                                    <label class="custom-control-label" for="chkbox_patching_contour" > <h7>외곽선</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_patching_contour"  style="float:right"></span>
-                                </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_patching_seg">
-                                    <label class="custom-control-label" for="chkbox_patching_seg" > <h7></h7>Segmentation</label>
-                                    <span class="badge badge-primary badge-pill" id="badge_patching_seg"  style="float:right"></span>
                                 </div>
                             </div>
                         </div>
@@ -196,17 +188,15 @@
                 <!--<button type="button" id="btn_apply" class="btn btn-outline-primary">적용</button>-->
             <!--</div>-->
         </div>
-        <div class="col-lg-5">
+        <div class="col-lg-3">
             <table class="table">
                 <thead>
                     <tr>
                         <th> Region </th>
                         <th> 균열종류 </th>
-                        <th> 폭(mm) </th>
-                        <th> 길이(mm) </th>
-                        <th> 면적(mm²) </th>
-                        <th> 평균 심각도 폭(mm) </th>
-                        <th> 최대 심각도 폭(mm) </th>
+                        <th> 길이(m) </th>
+                        <th> 면적(m²) </th>
+                        <th> 균열양(mm) </th>
                         <th> 심각도 </th>
                     </tr>
                 </thead>
@@ -294,6 +284,7 @@ function get_regions() {
                 region_text_colors.push('rgb(' + rev_r + ',' + rev_g + ',' + rev_b + ')');
             }
             var table_severity = d3.select("#table_severity");
+            console.log(regions[1])
             for (var i = 0; i < regions.length; i++) {
                 if (regions[i]['region_type'] == "patch") { text = "PAT"; }
                 else if (regions[i]['region_type'] == "ac") { text = "AC"; }
@@ -318,22 +309,38 @@ function get_regions() {
                 var width = maxx - minx;
                 var height = maxy - miny;
                 if (text == "PAT") {
-                    tr.append("td").attr("class", "severity_width").text("-");
                     tr.append("td").attr("class", "severity_height").text("-");
-                    tr.append("td").attr("class", "severity_area").text("-");
-                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "crack_area").text((regions[i]['patching_results']['area']/10000).toFixed(0));
                     tr.append("td").attr("class", "severity_area").text("-");
                     tr.append("td").attr("class", "severity_severity").text("-");
                 }
                 else {
-                    tr.append("td").attr("class", "crack_width").text(comma(width));
-                    tr.append("td").attr("class", "crack_height").text(comma(height));
-                    tr.append("td").attr("class", "crack_area").text(comma(width * height));
-                    tr.append("td").attr("class", "crack_area").text(total_average_width.toFixed(6));
-                    tr.append("td").attr("class", "crack_area").text(total_max_width);
+                    var total_avg_width = total_average_width.toFixed(0)
+                    if (total_avg_width == 0) {
+                        total_avg_width = parseInt(total_avg_width)
+                    }
+
+                    tr.append("td").attr("class", "crack_width").text((width/100).toFixed(0));
+                    tr.append("td").attr("class", "crack_area").text(((width * height)/10000).toFixed(0));
+                    tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
                     tr.append("td").attr("class", "crack_severity").text(severity);
                 }
             }
+        }
+    });
+}
+function get_seg_images() {
+    $.ajax({
+        url: "{% url 'get_seg_images' %}",
+        type: "POST",
+        data: {
+            name: 'get_seg_images',
+            image_pk: '{{ image_pk }}',
+        },
+        success: function (response) {
+            img_seg.src = response['seg_result'];
+            img_seg_th.src = response['seg_th_result'];
+            img_seg_hl.src = response['seg_hl_result'];
         }
     });
 }
@@ -347,26 +354,24 @@ function get_patching() {
             image_pk: '{{ image_pk }}',
         },
         success: function (response) {
-            patchings = response["regions"];
+            patchings = response['regions']
         }
     });
 }
-
+get_patching();
 get_cracks();
 get_regions();
-get_patching();
+get_seg_images();
+
 canvas.width = 750;
 canvas.height = 1000;
 
 var is_crack_rect = false;
 var is_region_rect = false;
+var is_region_name = false;
 var is_region_bbox = false;
 var is_severity_point = false;
 var is_region_severity_point = false;
-var is_patching_bbox = false;
-var is_patching_contour = false;
-var is_patching_region = false;
-var is_patching_segmentation = false;
 var alpha = 1;
 
 img_origin.onload = function () {
@@ -428,6 +433,40 @@ img_origin.onload = function () {
                     text_color = region_text_colors[i];
                     var text_region_num = regions[i]['region_num'];
 
+                    var xs = [];
+                    var ys = [];
+                    for (var j = 0; j < regions[i]['patchs'].length; j++) {
+                        var region = regions[i]['patchs'][j];
+                        ctx.beginPath();
+                        ctx.fillStyle = rect_color;
+                        ctx.lineWidth = 30;
+                        ctx.strokeStyle = rect_color;
+                        ctx.rect(region['x'], region['y'], region['w'], region['h']);
+                        ctx.stroke();
+                    }
+                }
+            }
+            for (var i = 0; i < patchings.length; i++) {
+                var region_x = patchings[i]['patching_results']['patching_region_minx'];
+                var region_y = patchings[i]['patching_results']['patching_region_miny'];
+                var region_width = patchings[i]['patching_results']['patching_region_maxx'] - patchings[i]['patching_results']['patching_region_minx'];
+                var region_height = patchings[i]['patching_results']['patching_region_maxy'] -  patchings[i]['patching_results']['patching_region_miny'];
+
+                ctx.beginPath();
+                ctx.lineWidth = "20";
+                ctx.strokeStyle = "orange";
+                ctx.rect(region_x, region_y, region_width, region_height);
+                ctx.stroke();
+            }
+        }
+
+        if (is_region_name == true) {
+            for (var i = 0; i < regions.length; i++) {
+                if (regions[i]['patchs'].length > 0) {
+                    rect_color = region_colors[i];
+                    text_color = region_text_colors[i];
+                    var text_region_num = regions[i]['region_num'];
+
                     if (regions[i]['region_type'] == "patch") { text = "PAT"; }
                     else if (regions[i]['region_type'] == "ac") { text = "AC"; }
                     else if (regions[i]['region_type'] == "lc") { text = "LC"; }
@@ -438,12 +477,6 @@ img_origin.onload = function () {
                         var region = regions[i]['patchs'][j];
                         xs.push(region['x']);
                         ys.push(region['y']);
-                        ctx.beginPath();
-                        ctx.fillStyle = rect_color;
-                        ctx.lineWidth = 30;
-                        ctx.strokeStyle = rect_color;
-                        ctx.rect(region['x'], region['y'], region['w'], region['h']);
-                        ctx.stroke();
                     }
                     var min_x = Math.min.apply(null, xs);
                     var min_y = Math.min.apply(null, ys);
@@ -461,6 +494,7 @@ img_origin.onload = function () {
             }
         }
 
+
         if (is_region_bbox == true) {
             for (var i = 0; i < regions.length; i++) {
                 if (regions[i]['patchs'].length > 1) {
@@ -472,13 +506,6 @@ img_origin.onload = function () {
                     else if (regions[i]['region_type'] == "ac") { text = "AC"; }
                     else if (regions[i]['region_type'] == "lc") { text = "LC"; }
                     else if (regions[i]['region_type'] == "tc") { text = "TC"; }
-                    var xs = [];
-                    var ys = [];
-                    for (var j = 0; j < regions[i]['patchs'].length; j++) {
-                        var region = regions[i]['patchs'][j];
-                        xs.push(region['x']);
-                        ys.push(region['y']);
-                    }
 
                     ctx.beginPath();
                     ctx.fillStyle = rect_color;
@@ -490,20 +517,19 @@ img_origin.onload = function () {
                         regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'],
                         regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny']);
                     ctx.stroke();
-
-                    var min_x = Math.min.apply(null, xs);
-                    var min_y = Math.min.apply(null, ys);
-                    var max_x = Math.max.apply(null, xs);
-                    var max_y = Math.max.apply(null, ys);
-                    var center_x = min_x + (max_x - min_x)/2;
-                    var center_y = min_y + (max_y - min_y)/2;
-
-                    ctx.font = "300px Arial";
-                    ctx.fillStyle = text_color;
-                    ctx.textAlign = "center";
-                    ctx.fillText(text, center_x + 130, center_y + 130);
-                    ctx.fillText("(" + text_region_num + ")", center_x + 130, center_y  + 430);
                 }
+            }
+            for (var i = 0; i < patchings.length; i++) {
+                var bbox_x = patchings[i]['patching_results']['patching_region_minx'] + patchings[i]['patching_results']['patching_bbox_minx'];
+                var bbox_y = patchings[i]['patching_results']['patching_region_miny'] + patchings[i]['patching_results']['patching_bbox_miny'];
+                var bbox_width = patchings[i]['patching_results']['patching_bbox_maxx'] - patchings[i]['patching_results']['patching_bbox_minx'];
+                var bbox_height = patchings[i]['patching_results']['patching_bbox_maxy'] -  patchings[i]['patching_results']['patching_bbox_miny'];
+
+                ctx.beginPath();
+                ctx.lineWidth = "20";
+                ctx.strokeStyle = colors[1];
+                ctx.rect(bbox_x, bbox_y, bbox_width, bbox_height);
+                ctx.stroke();
             }
         }
 
@@ -540,47 +566,6 @@ img_origin.onload = function () {
                         ctx.closePath();
                     }
                 }
-            }
-        }
-
-        if (is_patching_bbox == true) {
-            for (var i = 0; i < patchings.length; i++) {
-                var bbox_x = patchings[i]['patching_results']['patching_region_minx'] + patchings[i]['patching_results']['patching_bbox_minx'];
-                var bbox_y = patchings[i]['patching_results']['patching_region_miny'] + patchings[i]['patching_results']['patching_bbox_miny'];
-                var bbox_width = patchings[i]['patching_results']['patching_bbox_maxx'] - patchings[i]['patching_results']['patching_bbox_minx'];
-                var bbox_height = patchings[i]['patching_results']['patching_bbox_maxy'] -  patchings[i]['patching_results']['patching_bbox_miny'];
-
-                ctx.beginPath();
-                ctx.lineWidth = "20";
-                ctx.strokeStyle = colors[1];
-                ctx.rect(bbox_x, bbox_y, bbox_width, bbox_height);
-                ctx.stroke();
-            }
-        }
-
-        if (is_patching_region == true) {
-            for (var i = 0; i < patchings.length; i++) {
-                var region_x = patchings[i]['patching_results']['patching_region_minx'];
-                var region_y = patchings[i]['patching_results']['patching_region_miny'];
-                var region_width = patchings[i]['patching_results']['patching_region_maxx'] - patchings[i]['patching_results']['patching_region_minx'];
-                var region_height = patchings[i]['patching_results']['patching_region_maxy'] -  patchings[i]['patching_results']['patching_region_miny'];
-
-                ctx.beginPath();
-                ctx.lineWidth = "20";
-                ctx.strokeStyle = "orange";
-                ctx.rect(region_x, region_y, region_width, region_height);
-                ctx.stroke();
-            }
-        }
-
-        if (is_patching_contour == true) {
-            for (var i = 0; i < patchings.length; i++) {
-            }
-        }
-
-        if (is_patching_segmentation == true) {
-            for (var i = 0; i < patchings.length; i++) {
-
             }
         }
         ctx.fillStyle = "black";
@@ -738,17 +723,34 @@ img_origin.onload = function () {
     });
     $("#chkbox_region").click(function(e) {
         if (d3.select("#chkbox_region").property("checked") == true) {
+            is_region_name = true;
+        } else {
+            is_region_name = false;
+        }
+        redraw(img)
+    });
+    $("#radio_region_bbox").click(function(e) {
+        if (d3.select("#radio_region_bbox").property("checked") == true) {
+            is_region_bbox = true;
+            is_region_rect = false;
+        } else {
+            is_region_bbox = false;
+        }
+        redraw(img)
+    });
+    $("#radio_region").click(function(e) {
+        if (d3.select("#radio_region").property("checked") == true) {
             is_region_rect = true;
+            is_region_bbox = false;
         } else {
             is_region_rect = false;
         }
         redraw(img)
     });
-    $("#chkbox_region_bbox").click(function(e) {
-        if (d3.select("#chkbox_region_bbox").property("checked") == true) {
-            is_region_bbox = true;
-        } else {
+    $("#radio_region_nothing").click(function(e) {
+        if (d3.select("#radio_region_nothing").property("checked") == true) {
             is_region_bbox = false;
+            is_region_rect = false;
         }
         redraw(img)
     });
@@ -770,41 +772,6 @@ img_origin.onload = function () {
         }
         redraw(img)
     });
-
-    $("#chkbox_patching_bbox").click(function(e) {
-        if (d3.select("#chkbox_patching_bbox").property("checked") == true) {
-            is_patching_bbox = true;
-        } else {
-            is_patching_bbox = false;
-        }
-        redraw(img)
-    });
-
-    $("#chkbox_patching_region").click(function(e) {
-        if (d3.select("#chkbox_patching_region").property("checked") == true) {
-            is_patching_region = true;
-        } else {
-            is_patching_region = false;
-        }
-        redraw(img)
-    });
-
-    $("#chkbox_patching_contour").click(function(e) {
-        if (d3.select("#chkbox_patching_contour").property("checked") == true) {
-            is_patching_contour = true;
-        } else {
-            is_patching_contour = false;
-        }
-        redraw(img)
-    });
-    $("#chkbox_patching_seg").click(function(e) {
-        if (d3.select("#chkbox_patching_seg").property("checked") == true) {
-            is_patching_segmentation = true;
-        } else {
-            is_patching_segmentation = false;
-        }
-        redraw(img)
-    });
 };
 img_origin.src = "/media/{{image.image}}";
 
@@ -816,17 +783,17 @@ img_origin.src = "/media/{{image.image}}";
 //     img_seg_gt.src = "/media/{{gt_result}}";
 // }
 if ("{{is_analyzed}}" == "False") {
-    d3.select("#radio_seg_no_th").property("disabled", true)
-    d3.select("#radio_seg_th").property("disabled", true)
-    d3.select("#radio_seg_hl").property("disabled", true)
-    d3.select("#chkbox_cls").property("disabled", true)
-    d3.select("#chkbox_region").property("disabled", true)
-    d3.select("#chkbox_region_bbox").property("disabled", true)
-    d3.select("#chkbox_severity_point").property("disabled", true)
-    d3.select("#chkbox_region_severity_point").property("disabled", true)
-    d3.select("#chkbox_patching_bbox").property("disabled", true)
-    d3.select("#chkbox_patching_contour").property("disabled", true)
-    d3.select("#chkbox_patching_seg").property("disabled", true)
+    d3.select("#radio_seg_no_th").property("disabled", true);
+    d3.select("#radio_seg_th").property("disabled", true);
+    d3.select("#radio_seg_hl").property("disabled", true);
+    d3.select("#chkbox_cls").property("disabled", true);
+    d3.select("#chkbox_region").property("disabled", true);
+    d3.select("#radio_region_bbox").property("disabled", true);
+    d3.select("#chkbox_severity_point").property("disabled", true);
+    d3.select("#chkbox_region_severity_point").property("disabled", true);
+    d3.select("#chkbox_patching_bbox").property("disabled", true);
+    d3.select("#chkbox_patching_contour").property("disabled", true);
+    d3.select("#chkbox_patching_seg").property("disabled", true);
 }
 else {
     img_seg.src = "/media/{{seg_result}}";
@@ -834,10 +801,6 @@ else {
     img_seg_hl.src = "/media/{{seg_hl_result}}";
 }
 
-console.log("{{seg_result}}")
-console.log("{{seg_th_result}}")
-console.log("{{seg_hl_result}}")
-console.log("{{seg_hl_th_result}}")
 $("#btn_analysis").click(function(e) {
     var $this = $(this);
     var loadingText = '<i class="fa fa-circle-o-notch fa-spin"></i> 분석 중';
@@ -864,18 +827,17 @@ $("#btn_analysis").click(function(e) {
             success: function (response) {
                 get_cracks();
                 get_regions();
-
-                    d3.select("#radio_seg_no_th").property("disabled", false)
-                    d3.select("#radio_seg_th").property("disabled", false)
-                    d3.select("#radio_seg_hl").property("disabled", false)
-                    d3.select("#chkbox_cls").property("disabled", false)
-                    d3.select("#chkbox_region").property("disabled", false)
-                    d3.select("#chkbox_region_bbox").property("disabled", false)
-                    d3.select("#chkbox_severity_point").property("disabled", false)
-                    d3.select("#chkbox_region_severity_point").property("disabled", false)
-                    d3.select("#chkbox_patching_bbox").property("disabled", false)
-                    d3.select("#chkbox_patching_contour").property("disabled", false)
-                    d3.select("#chkbox_patching_seg").property("disabled", false)
+                d3.select("#radio_seg_no_th").property("disabled", false);
+                d3.select("#radio_seg_th").property("disabled", false);
+                d3.select("#radio_seg_hl").property("disabled", false);
+                d3.select("#chkbox_cls").property("disabled", false);
+                d3.select("#chkbox_region").property("disabled", false);
+                d3.select("#radio_region_bbox").property("disabled", false);
+                d3.select("#chkbox_severity_point").property("disabled", false);
+                d3.select("#chkbox_region_severity_point").property("disabled", false);
+                d3.select("#chkbox_patching_bbox").property("disabled", false);
+                d3.select("#chkbox_patching_contour").property("disabled", false);
+                d3.select("#chkbox_patching_seg").property("disabled", false);
                 $this.html($this.data('original-text'));
             }
         });

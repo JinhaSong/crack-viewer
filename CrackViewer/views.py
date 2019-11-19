@@ -120,28 +120,38 @@ def get_regions(request) :
 
 
 @csrf_exempt
-def get_patching(request) :
-    regions = []
+def get_seg_images(request) :
+    seg_results = {}
     if request.method == "POST" :
-        region_result = RegionResultModel.objects.filter(image__pk=request.POST['image_pk']).filter(region_type='patch')
-        print(len(region_result))
-        for region in region_result :
-            dict_region = {}
-            dict_region['region_num'] = region.region_num
-            dict_region['patchs'] = []
-            patching_results = {}
-            patching_results['contours'] = region.patching_results['contours']
-            patching_results['patching_bbox_maxx'] = region.patching_results['patching_bbox_maxx']
-            patching_results['patching_bbox_maxy'] = region.patching_results['patching_bbox_maxy']
-            patching_results['patching_bbox_minx'] = region.patching_results['patching_bbox_minx']
-            patching_results['patching_bbox_miny'] = region.patching_results['patching_bbox_miny']
-            patching_results['patching_region_maxx'] = region.patching_results['patching_region_maxx']
-            patching_results['patching_region_maxy'] = region.patching_results['patching_region_maxy']
-            patching_results['patching_region_minx'] = region.patching_results['patching_region_minx']
-            patching_results['patching_region_miny'] = region.patching_results['patching_region_miny']
-            dict_region['patching_results'] = patching_results
+        seg_result = SegResultModel.objects.filter(image__pk=request.POST['image_pk'])
+        if len(seg_result) > 0:
+            seg_results['seg_result'] = '/media/' + str(seg_result[0].seg_image)
+            seg_results['seg_th_result'] = '/media/' + str(seg_result[0].seg_image_th)
+            seg_results['seg_hl_result'] = '/media/' + str(seg_result[0].seg_image_hl),
+            seg_results['seg_hl_th_result'] = '/media/' + str(seg_result[0].seg_image_hl_th)
 
-            regions.append(dict_region)
+    return HttpResponse(json.dumps(seg_results), 'application/json')
+
+@csrf_exempt
+def get_patching(request) :
+    region_result = RegionResultModel.objects.filter(image__pk=request.POST['image_pk']).filter(region_type='patch')
+    regions = []
+    for region in region_result :
+        dict_region = {}
+        dict_region['region_num'] = region.region_num
+        dict_region['patchs'] = []
+        patching_results = {}
+        patching_results['contours'] = region.patching_results['contours']
+        patching_results['patching_bbox_maxx'] = region.patching_results['patching_bbox_maxx']
+        patching_results['patching_bbox_maxy'] = region.patching_results['patching_bbox_maxy']
+        patching_results['patching_bbox_minx'] = region.patching_results['patching_bbox_minx']
+        patching_results['patching_bbox_miny'] = region.patching_results['patching_bbox_miny']
+        patching_results['patching_region_maxx'] = region.patching_results['patching_region_maxx']
+        patching_results['patching_region_maxy'] = region.patching_results['patching_region_maxy']
+        patching_results['patching_region_minx'] = region.patching_results['patching_region_minx']
+        patching_results['patching_region_miny'] = region.patching_results['patching_region_miny']
+        dict_region['patching_results'] = patching_results
+        regions.append(dict_region)
     return HttpResponse(json.dumps({"regions": regions}), 'application/json')
 
 
@@ -291,13 +301,9 @@ def analysis(request) :
         seg_img_hl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_path)
         seg_img_hl_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_th_path)
 
-        print(seg_img_path)
-        print(seg_img_th_path)
-        print(seg_img_hl_path)
-        print(seg_img_hl_th_path)
         save_image_binary(seg_img_path)
         save_image_binary_thresholding(seg_img_th_path, severity_threshold)
-        save_image_hightlight_region(seg_img_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
+        save_image_hightlight_region(seg_img_th_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
         save_image_hightlight_region(seg_img_th_path, seg_img_hl_th_path, region_results, patch_size, image_height, image_width)
         # save_image_hightlight_region_th(seg_img_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
 
