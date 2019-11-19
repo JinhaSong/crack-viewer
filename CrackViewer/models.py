@@ -26,8 +26,10 @@ class ClsResultModel(models.Model):
 
 class SegResultModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='seg_result', on_delete=models.CASCADE)
-    seg_image = models.ImageField()
-    seg_image_th = models.ImageField()
+    seg_image = models.ImageField(null=True)
+    seg_image_th = models.ImageField(null=True)
+    seg_image_hl = models.ImageField(null=True)
+    seg_image_hl_th = models.ImageField(null=True)
 
 class SegGTModel(models.Model):
     image = models.ForeignKey(ImageModel, related_name='seg_gt', on_delete=models.CASCADE)

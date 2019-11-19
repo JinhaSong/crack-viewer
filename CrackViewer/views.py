@@ -13,7 +13,8 @@ from CrackSite import settings
 from PIL import Image
 from io import BytesIO, StringIO
 import json, os, base64
-import cv2
+from CrackViewer.utils.segImagePostProcess import *
+
 
 @csrf_exempt
 def upload(request) :
@@ -55,22 +56,24 @@ def image_detail(request, image_pk) :
     is_gt = False
     seg_image_url = ""
     seg_image_th_url = ""
+    seg_image_hl_url = ""
+    seg_image_hl_th_url = ""
     if len(seg_result) > 0 :
         is_analyzed = True
         seg_image_url = str(seg_result[0].seg_image)
         seg_image_th_url = str(seg_result[0].seg_image_th)
+        seg_image_hl_url = str(seg_result[0].seg_image_hl)
+        seg_image_hl_th_url = str(seg_result[0].seg_image_hl_th)
     if len(seg_gt) > 0 :
         is_gt = True
-
-    print(seg_image_url)
-    print(seg_image_th_url)
-
 
     return render(request, 'imagedetail.html', {
                     'image': image[0],
                     'image_pk': image_pk,
                     'seg_result': seg_image_url,
                     'seg_th_result': seg_image_th_url,
+                    'seg_hl_result': seg_image_hl_url,
+                    'seg_hl_th_result': seg_image_hl_th_url,
                     'seg_gt':seg_gt,
                     'is_analyzed': is_analyzed,
                     'is_gt': is_gt
@@ -121,11 +124,24 @@ def get_patching(request) :
     regions = []
     if request.method == "POST" :
         region_result = RegionResultModel.objects.filter(image__pk=request.POST['image_pk']).filter(region_type='patch')
+        print(len(region_result))
         for region in region_result :
             dict_region = {}
             dict_region['region_num'] = region.region_num
             dict_region['patchs'] = []
-            dict_region['patching_results'] = region.patching_results
+            patching_results = {}
+            patching_results['contours'] = region.patching_results['contours']
+            patching_results['patching_bbox_maxx'] = region.patching_results['patching_bbox_maxx']
+            patching_results['patching_bbox_maxy'] = region.patching_results['patching_bbox_maxy']
+            patching_results['patching_bbox_minx'] = region.patching_results['patching_bbox_minx']
+            patching_results['patching_bbox_miny'] = region.patching_results['patching_bbox_miny']
+            patching_results['patching_region_maxx'] = region.patching_results['patching_region_maxx']
+            patching_results['patching_region_maxy'] = region.patching_results['patching_region_maxy']
+            patching_results['patching_region_minx'] = region.patching_results['patching_region_minx']
+            patching_results['patching_region_miny'] = region.patching_results['patching_region_miny']
+            dict_region['patching_results'] = patching_results
+
+            regions.append(dict_region)
     return HttpResponse(json.dumps({"regions": regions}), 'application/json')
 
 
@@ -134,6 +150,25 @@ def analysis(request) :
     result = []
     if request.method == "POST" :
         image = ImageModel.objects.filter(pk=request.POST['image_pk'])[0]
+        prev_cls_results = ClsResultModel.objects.filter(image__pk=request.POST['image_pk'])
+        prev_seg_results = SegResultModel.objects.filter(image__pk=request.POST['image_pk'])
+        prev_region_results = RegionResultModel.objects.filter(image__pk=request.POST['image_pk'])
+        prev_region_positions = RegionPositionModel.objects.filter(region_model=prev_region_results)
+
+        for result in prev_cls_results :
+            result.delete()
+
+        for result in prev_seg_results :
+            result.delete()
+
+        for result in prev_region_results :
+            result.delete()
+
+        for result in prev_region_positions :
+            result.delete()
+
+        print("==== Deleted previous results ====")
+
         image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', str(image.image))
 
         # Send analysis request to crack-bridge-site
@@ -150,8 +185,11 @@ def analysis(request) :
             region_noise_filter=region_noise_filter,
             severity_threshold=severity_threshold,
         )
-        response = json.loads((analysis_request.send_request_message().content).decode("utf-8"))['results'][0]['module_result']
-
+        response = json.loads((analysis_request.send_request_message().content).decode("utf-8"))
+        patch_size =  response['patch_size']
+        image_height =  int(response['image_height'])
+        image_width =  int(response['image_width'])
+        response = response['results'][0]['module_result']
         # Get classification result and segmentation result from response of crack-bridge-site
         cls_result = response['cls_result']
         seg_result = response['seg_image']
@@ -239,33 +277,29 @@ def analysis(request) :
         segResultModel = SegResultModel.objects.create(image=image)
         seg_img_path = os.path.join(str(image.image).split(".")[0] + "_seg" + ".png")
         seg_img_th_path = os.path.join(str(image.image).split(".")[0] + "_seg_th" + ".png")
+        seg_img_hl_path = os.path.join(str(image.image).split(".")[0] + "_seg_hl" + ".png")
+        seg_img_hl_th_path = os.path.join(str(image.image).split(".")[0] + "_seg_hl_th" + ".png")
+
         segResultModel.seg_image = ContentFile(base64.b64decode(seg_result), name=seg_img_path)
         segResultModel.seg_image_th = ContentFile(base64.b64decode(seg_result), name=seg_img_th_path)
+        segResultModel.seg_image_hl = ContentFile(base64.b64decode(seg_result), name=seg_img_hl_path)
+        segResultModel.seg_img_hl_th = ContentFile(base64.b64decode(seg_result), name=seg_img_hl_th_path)
         segResultModel.save()
 
         seg_img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_path)
         seg_img_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_th_path)
-        seg_img = cv2.imread(seg_img_path, -1)
-        seg_img_th = cv2.imread(seg_img_th_path, -1)
+        seg_img_hl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_path)
+        seg_img_hl_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_th_path)
 
-        seg_img[seg_img <= 127] = 0
-        seg_img[seg_img > 127] = 255
-        tmp = cv2.cvtColor(seg_img, cv2.COLOR_BGR2GRAY)
-        _, alpha = cv2.threshold(tmp, 0, 127, cv2.THRESH_BINARY)
-        b, g, r = cv2.split(seg_img)
-        rgba = [b, g, r, alpha]
-        seg_img = cv2.merge(rgba, 4)
-
-        seg_img_th[seg_img_th <= severity_threshold] = 0
-        seg_img_th[seg_img_th > severity_threshold] = 255
-        tmp = cv2.cvtColor(seg_img_th, cv2.COLOR_BGR2GRAY)
-        _, alpha = cv2.threshold(tmp, 0, 200, cv2.THRESH_BINARY)
-        b, g, r = cv2.split(seg_img_th)
-        rgba = [b, g, r, alpha]
-        seg_img_th = cv2.merge(rgba, 4)
-
-        cv2.imwrite(seg_img_path, seg_img)
-        cv2.imwrite(seg_img_th_path, seg_img_th)
+        print(seg_img_path)
+        print(seg_img_th_path)
+        print(seg_img_hl_path)
+        print(seg_img_hl_th_path)
+        save_image_binary(seg_img_path)
+        save_image_binary_thresholding(seg_img_th_path, severity_threshold)
+        save_image_hightlight_region(seg_img_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
+        save_image_hightlight_region(seg_img_th_path, seg_img_hl_th_path, region_results, patch_size, image_height, image_width)
+        # save_image_hightlight_region_th(seg_img_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
 
         return HttpResponse(json.dumps({"state": True}), 'application/json')
     else:
