@@ -310,7 +310,7 @@ function get_regions() {
                 var height = maxy - miny;
                 if (text == "PAT") {
                     tr.append("td").attr("class", "severity_height").text("-");
-                    tr.append("td").attr("class", "crack_area").text((regions[i]['patching_results']['area']/10000).toFixed(0));
+                    tr.append("td").attr("class", "crack_area").text(comma((regions[i]['patching_results']['area']/10000).toFixed(0)));
                     tr.append("td").attr("class", "severity_area").text("-");
                     tr.append("td").attr("class", "severity_severity").text("-");
                 }
@@ -321,7 +321,7 @@ function get_regions() {
                     }
 
                     tr.append("td").attr("class", "crack_width").text((width/100).toFixed(0));
-                    tr.append("td").attr("class", "crack_area").text(((width * height)/10000).toFixed(0));
+                    tr.append("td").attr("class", "crack_area").text(comma(((width * height)/10000).toFixed(0)));
                     tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
                     tr.append("td").attr("class", "crack_severity").text(severity);
                 }
