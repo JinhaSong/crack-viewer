@@ -22,9 +22,9 @@
                     <h5>Upload</h5>
                 </div>
                 <div class="col-lg-9 align-self-center">
-                    <label class="custom-file" id="customFile">
-                        <input type="file" class="custom-file-input"  name="image">
-                        <span class="custom-file-label" for="customFile" id="label_filename"></span>
+                    <label class="custom-file" >
+                        <input type="file" class="custom-file-input" id="customFile" name="image">
+                        <label class="custom-file-label" for="customFile" id="label_filename"></label>
                     </label>
                 </div>
                 <div class="col-lg-2 align-self-center" style="text-align: center">
@@ -78,8 +78,8 @@
 {% block jquery %}
 <script>
 $("#customFile").on("change", function() {
-  var fileName = $(this).val().split("\\").pop();
-  $(this).siblings("#label_filename").addClass("selected").html(fileName);
+    var fileName = $(this).val().split("\\").pop();
+    $(this).siblings("#label_filename").addClass("selected").html(fileName);
 });
 </script>
 {% endblock jquery %}
