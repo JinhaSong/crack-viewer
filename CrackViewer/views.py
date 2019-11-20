@@ -181,6 +181,9 @@ def analysis(request) :
             result.delete()
 
         for result in prev_seg_results :
+            os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', str(result.seg_image)))
+            os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', str(result.seg_image_th)))
+            os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', str(result.seg_image_hl)))
             result.delete()
 
         for result in prev_region_results :

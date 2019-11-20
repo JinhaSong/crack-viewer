@@ -801,6 +801,7 @@ if ("{{is_analyzed}}" == "False") {
     d3.select("#chkbox_cls").property("disabled", true);
     d3.select("#chkbox_region").property("disabled", true);
     d3.select("#radio_region_bbox").property("disabled", true);
+    d3.select("#radio_region").property("disabled", false);
     d3.select("#chkbox_severity_point").property("disabled", true);
     d3.select("#chkbox_region_severity_point").property("disabled", true);
     d3.select("#chkbox_patching_bbox").property("disabled", true);
@@ -816,7 +817,7 @@ else {
 $("#btn_analysis").click(function(e) {
     var $this = $(this);
     var loadingText = '<i class="fa fa-circle-o-notch fa-spin"></i> 분석 중';
-    if ($(this).html() !== loadingText) {
+    if ($(this).html() != loadingText) {
         $this.data('original-text', $(this).html());
         $this.html(loadingText);
         var select_region_connectivity = document.getElementById("select_region_connectivity");
@@ -825,6 +826,7 @@ $("#btn_analysis").click(function(e) {
         var region_connectivity = select_region_connectivity.options[select_region_connectivity.selectedIndex].value;
         var region_noise_filter = select_region_noise_filter.options[select_region_noise_filter.selectedIndex].value;
         var severity_threshold =  document.getElementById("severity_threshold").value;
+        document.getElementById("btn_analysis").disabled = true;
 
         $.ajax({
             url: "{% url 'analysis' %}",
@@ -845,12 +847,14 @@ $("#btn_analysis").click(function(e) {
                 d3.select("#chkbox_cls").property("disabled", false);
                 d3.select("#chkbox_region").property("disabled", false);
                 d3.select("#radio_region_bbox").property("disabled", false);
+                d3.select("#radio_region").property("disabled", false);
                 d3.select("#chkbox_severity_point").property("disabled", false);
                 d3.select("#chkbox_region_severity_point").property("disabled", false);
                 d3.select("#chkbox_patching_bbox").property("disabled", false);
                 d3.select("#chkbox_patching_contour").property("disabled", false);
                 d3.select("#chkbox_patching_seg").property("disabled", false);
                 $this.html($this.data('original-text'));
+                document.getElementById("btn_analysis").disabled = false;
             }
         });
     }
