@@ -10,5 +10,5 @@ admin.site.register(ClsResultModel)
 admin.site.register(SegResultModel)
 admin.site.register(SegGTModel)
 admin.site.register(RegionResultModel)
-admin.site.register(RegionPositionModel)
+admin.site.register(AnalysisURL)
 

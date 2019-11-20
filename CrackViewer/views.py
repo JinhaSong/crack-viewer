@@ -8,10 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .forms import ImageGTUploadForm, ImageUploadForm
 from .models import *
 from .utils.AnalysisRequest import AnalysisRequest
-from CrackSite import settings
 
-from PIL import Image
-from io import BytesIO, StringIO
 import json, os, base64
 from CrackViewer.utils.segImagePostProcess import *
 
@@ -44,9 +41,23 @@ def upload_without_gt(request) :
 
 
 def image_list(request) :
-    image_model = ImageModel.objects.all().order_by('-pk')[:10]
+    image_models = ImageModel.objects.all().order_by('-pk')
 
-    return render(request, 'imagelist.html', {'images' : image_model})
+    region_connectivity = []
+    region_noise_filter = []
+    severity_threshold = []
+
+    for image_model in image_models :
+        region_connectivity.append(image_model.region_connectivity)
+        region_connectivity.append(image_model.region_noise_filter)
+        region_connectivity.append(image_model.severity_threshold)
+
+    return render(request, 'imagelist.html', {
+        'images' : image_models,
+        'region_connectivitys': region_connectivity,
+        'region_noise_filters': region_noise_filter,
+        'severity_thresholds': severity_threshold,
+    })
 
 def image_detail(request, image_pk) :
     image = ImageModel.objects.filter(pk=image_pk)
@@ -164,6 +175,7 @@ def analysis(request) :
         prev_seg_results = SegResultModel.objects.filter(image__pk=request.POST['image_pk'])
         prev_region_results = RegionResultModel.objects.filter(image__pk=request.POST['image_pk'])
         prev_region_positions = RegionPositionModel.objects.filter(region_model=prev_region_results)
+        url = AnalysisURL.objects.filter(server_name="crack")
 
         for result in prev_cls_results :
             result.delete()
@@ -188,8 +200,15 @@ def analysis(request) :
         region_connectivity = int(request.POST['region_connectivity'])
         region_noise_filter = int(request.POST['region_noise_filter'])
         severity_threshold = int(request.POST['severity_threshold'])
+
+
+        image.region_connectivity = region_connectivity
+        image.region_noise_filter = region_noise_filter
+        image.severity_threshold = severity_threshold
+        image.save()
+
         analysis_request.set_request_attr(
-            url='http://mltwins.sogang.ac.kr:8000/analyzer/',
+            url=url[0].url,
             image=b_image, modules='crack',
             region_connectivity=region_connectivity,
             region_noise_filter=region_noise_filter,

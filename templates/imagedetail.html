@@ -57,7 +57,7 @@
                         <label><h6>Region Noise Filter Option</h6></label>
                         <!--option selector-->
                         <select class="form-control" id="select_region_noise_filter">
-                            <option value="0">Nothing</option>
+                            <option value="0">없음</option>
                             <option value="1">구멍 채우기</option>
                             <option value="2">모서리 자르기</option>
                             <option value="3" selected>모서리 자르기 및 구멍 채우기</option>
@@ -112,21 +112,23 @@
                             <header class="card-header"><h6 class="title"> 분석 결과 </h6></header>
                             <div class="card-body">
                                 <label><h6><strong>균열 이미지</strong></h6></label>
-                                <div class="custom-control custom-radio">
-                                  <input type="radio" class="custom-control-input" id="radio_seg_no_th" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_no_th"><h7>확률 값으로 보기</h7></label>
-                                </div>
-                                <div class="custom-control custom-radio">
-                                  <input type="radio" class="custom-control-input" id="radio_seg_th" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_th">균열 임계값 이상만 보기</label>
-                                </div>
-                                <div class="custom-control custom-radio">
-                                  <input type="radio" class="custom-control-input" id="radio_seg_hl" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_hl">영역별 따로 보기</label>
-                                </div>
-                                <div class="custom-control custom-radio">
-                                  <input type="radio" class="custom-control-input" id="radio_seg_nothing" name="group_of_seg_image">
-                                  <label class="custom-control-label" for="radio_seg_nothing">표시하지 않음</label>
+                                <div style="padding-left: 20px">
+                                    <div class="custom-control custom-radio">
+                                      <input type="radio" class="custom-control-input" id="radio_seg_no_th" name="group_of_seg_image">
+                                      <label class="custom-control-label" for="radio_seg_no_th"><h7>확률 값으로 보기</h7></label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                      <input type="radio" class="custom-control-input" id="radio_seg_th" name="group_of_seg_image">
+                                      <label class="custom-control-label" for="radio_seg_th">균열 임계값 이상만 보기</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                      <input type="radio" class="custom-control-input" id="radio_seg_hl" name="group_of_seg_image">
+                                      <label class="custom-control-label" for="radio_seg_hl">영역별 따로 보기</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                      <input type="radio" class="custom-control-input" id="radio_seg_nothing" name="group_of_seg_image">
+                                      <label class="custom-control-label" for="radio_seg_nothing">표시하지 않음</label>
+                                    </div>
                                 </div>
                                 <!--<div class="custom-control custom-radio">-->
                                   <!--<input type="radio" class="custom-control-input" id="radio_seg_hl_th" name="group_of_seg_image">-->
@@ -138,45 +140,47 @@
                                     <label><h6><strong>Patch 단위 분석 결과</strong></h6></label>
                                     <span class="badge badge-primary badge-pill" id="badge_cls" style="float:right"></span>
                                 </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_cls">
-                                    <label class="custom-control-label" for="chkbox_cls"> <h7>균열 종류(TC/LC/AC/PAT) 보기</h7> </label>
+                                <div style="padding-left: 20px">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="chkbox_cls">
+                                        <label class="custom-control-label" for="chkbox_cls"> <h7>균열 종류(TC/LC/AC/PAT) 보기</h7> </label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="chkbox_severity_point">
+                                        <label class="custom-control-label" for="chkbox_severity_point" > <h7>균열이 가장 넓은 곳 보기</h7> </label>
+                                        <span class="badge badge-primary badge-pill" id="badge_severity_point"  style="float:right"></span>
+                                    </div>
                                 </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_severity_point">
-                                    <label class="custom-control-label" for="chkbox_severity_point" > <h7>균열이 가장 넓은 곳 보기</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_severity_point"  style="float:right"></span>
-                                </div>
-                                
                                 <br>
                                 <div>
                                     <label><h6><strong>영역 단위 분석 결과</strong></h6></label>
                                     <span class="badge badge-primary badge-pill" id="badge_region"  style="float:right"></span>
                                 </div>
-                                <label style="padding-left: 20px"><h8>영역 보기 방법</h8></label>
-                                <div style="padding-left: 40px; padding-bottom: 10px">
-                                <div class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" id="radio_region_bbox" name="group_of_region">
-                                    <label class="custom-control-label" for="radio_region_bbox" > <h7>Bounding Box</h7> </label>
+                                <label style="padding-left: 20px"><li><h8>영역 보기 방법</h8></li></label>
+                                <div style="padding-left: 60px; padding-bottom: 10px">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="radio_region_bbox" name="group_of_region">
+                                        <label class="custom-control-label" for="radio_region_bbox" > <h7>Bounding Box로 보기</h7> </label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="radio_region" name="group_of_region" >
+                                        <label class="custom-control-label" for="radio_region" > <h7>Patch 단위로 보기</h7> </label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="radio_region_nothing" name="group_of_region" >
+                                        <label class="custom-control-label" for="radio_region_nothing" > <h7>표시하지 않음</h7> </label>
+                                    </div>
                                 </div>
-                                <div class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" id="radio_region" name="group_of_region" >
-                                    <label class="custom-control-label" for="radio_region" > <h7>Region</h7> </label>
-                                </div>
-                                <div class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" id="radio_region_nothing" name="group_of_region" >
-                                    <label class="custom-control-label" for="radio_region_nothing" > <h7>표시하지 않음</h7> </label>
-                                </div>
-                                </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_region">
-                                    <label class="custom-control-label" for="chkbox_region" > <h7>균열 종류(TC/LC/AC/PAT) 보기</h7> </label>
-
-                                </div>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="chkbox_region_severity_point">
-                                    <label class="custom-control-label" for="chkbox_region_severity_point" > <h7>균열이 가장 넓은곳 보기</h7> </label>
-                                    <span class="badge badge-primary badge-pill" id="badge_region_severity_point"  style="float:right"></span>
+                                <div style="padding-left: 20px">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="chkbox_region">
+                                        <label class="custom-control-label" for="chkbox_region" > <h7>균열 종류(TC/LC/AC/PAT) 보기</h7> </label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="chkbox_region_severity_point">
+                                        <label class="custom-control-label" for="chkbox_region_severity_point" > <h7>균열이 가장 넓은곳 보기</h7> </label>
+                                        <span class="badge badge-primary badge-pill" id="badge_region_severity_point"  style="float:right"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -309,8 +313,12 @@ function get_regions() {
                 var width = maxx - minx;
                 var height = maxy - miny;
                 if (text == "PAT") {
+                    var area = (regions[i]['patching_results']['area']/10000).toFixed(2)
+                    var area_upper = comma(parseInt(String(area).split(".")[0]));
+                    var floor = String(area).split(".")[1];
+
                     tr.append("td").attr("class", "severity_height").text("-");
-                    tr.append("td").attr("class", "crack_area").text(comma((regions[i]['patching_results']['area']/10000).toFixed(0)));
+                    tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
                     tr.append("td").attr("class", "severity_area").text("-");
                     tr.append("td").attr("class", "severity_severity").text("-");
                 }
@@ -319,9 +327,13 @@ function get_regions() {
                     if (total_avg_width == 0) {
                         total_avg_width = parseInt(total_avg_width)
                     }
-
-                    tr.append("td").attr("class", "crack_width").text((width/100).toFixed(0));
-                    tr.append("td").attr("class", "crack_area").text(comma(((width * height)/10000).toFixed(0)));
+                    var length = 0;
+                    if (text == "LC")
+                        length = (width/100).toFixed(0);
+                    else if (text == "TC")
+                        length = (width/100).toFixed(0);
+                    tr.append("td").attr("class", "crack_width").text(length);
+                    tr.append("td").attr("class", "crack_area").text("-");
                     tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
                     tr.append("td").attr("class", "crack_severity").text(severity);
                 }

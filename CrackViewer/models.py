@@ -10,8 +10,9 @@ class ImageModel(models.Model):
     image = models.ImageField(upload_to=filename.default)
     seg_gt_image = models.ImageField(upload_to=filename.default, null=True)
     token = models.AutoField(primary_key=True)
-    cc_th = models.IntegerField(default=0)
-    severity_th = models.IntegerField(default=0)
+    region_connectivity = models.IntegerField(default=0)
+    region_noise_filter = models.IntegerField(default=0)
+    severity_threshold = models.IntegerField(default=0)
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
 class ClsResultModel(models.Model):
@@ -54,3 +55,6 @@ class RegionPositionModel(models.Model):
     w = models.FloatField(null=True, unique=False)
     h = models.FloatField(null=True, unique=False)
 
+class AnalysisURL(models.Model):
+    server_name = models.TextField()
+    url = models.TextField(null=True, unique=False)

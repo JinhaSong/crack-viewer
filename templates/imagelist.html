@@ -14,89 +14,60 @@
 {% block content %}
     <div class="container">
         <br>
-        <div class="row">
-            <div class="col-lg-6">
-                <form method="POST" action="{% url 'upload_without_gt' %}" id="add_form_" enctype="multipart/form-data">
-                    {{ form.as_p }}
-                    {% csrf_token %}
-                    <div class="row">
-                        <h2>Upload</h2>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-4">
-                            <div class="row">
-                                <h5>Test Image</h5>
-                            </div>
-                        </div>
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <input type="file" name="image"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-9">
-                        </div>
-                        <div class="col-lg-3">
-                            <button type="submit" form="add_form_">Add</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="col-lg-6">
-                <form method="POST" action="{% url 'upload' %}" id="add_form" enctype="multipart/form-data">
-                    {{ form.as_p }}
-                    {% csrf_token %}
-                    <div class="row">
-                        <h2>Upload with GT</h2>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-4">
-                            <div class="row">
-                                <h5>Test Image</h5>
-                            </div>
-                            <br>
-                            <div class="row">
-                                <h5>GT Image</h5>
-                            </div>
-                        </div>
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <input type="file" name="image" id="image" />
-                            </div>
-                            <br>
-                            <div class="row">
-                                <input type="file" name="seg_gt_image" id="seg_gt_image" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-9">
-                        </div>
-                        <div class="col-lg-3">
-                            <button type="submit" form="add_form">Add</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+            <form method="POST" action="{% url 'upload_without_gt' %}" id="add_form" enctype="multipart/form-data">
+                {{ form.as_p }}
+                {% csrf_token %}
+                <div class="row">
+                <div class="col-lg-1 align-self-center" style="text-align: center">
+                    <h5>Upload</h5>
+                </div>
+                <div class="col-lg-9 align-self-center">
+                    <label class="custom-file" id="customFile">
+                        <input type="file" class="custom-file-input"  name="image">
+                        <span class="custom-file-label" for="customFile" id="label_filename"></span>
+                    </label>
+                </div>
+                <div class="col-lg-2 align-self-center" style="text-align: center">
+                    <button class="btn btn-outline-secondary" type="submit" form="add_form">업로드</button>
+                </div>
+                </div>
+            </form>
         <br>
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th> Image name </th>
-                    <th> Date </th>
-                    <th> Connected component threshold </th>
-                    <th> Severity threshold </th>
+                    <th style="text-align: center; vertical-align: middle;"> Image name </th>
+                    <th style="text-align: center; vertical-align: middle;"> Date </th>
+                    <th style="text-align: center; vertical-align: middle;"> Region Connectivity </th>
+                    <th style="text-align: center; vertical-align: middle;"> Region Noise Filter </th>
+                    <th style="text-align: center; vertical-align: middle;"> Severity Threshold </th>
                 </tr>
             </thead>
             <tbody>
             {% for image in images %}
                 <tr>
                     <td> <a href="{% url 'imagedetail' image.pk %}">{{image.image}}</a> </td>
-                    <td> {{image.uploaded_date}} </td>
-                    <td> {{image.cc_th}} </td>
-                    <td> {{image.severity_th}} </td>
+                    <td style="text-align: center;"> {{image.uploaded_date}} </td>
+                    {% if image.region_connectivity == 0 %}
+                        <td style="text-align: center;"> Connectivity - 4 </td>
+                    {% endif %}
+                    {% if image.region_connectivity == 1 %}
+                        <td style="text-align: center;"> Connectivity - 8 </td>
+                    {% endif %}
+
+                    {% if image.region_noise_filter == 1 %}
+                        <td style="text-align: center;"> 없음 </td>
+                    {% endif %}
+                    {% if image.region_noise_filter == 2 %}
+                        <td style="text-align: center;"> 구멍 채우기 </td>
+                    {% endif %}
+                    {% if image.region_noise_filter == 3 %}
+                        <td style="text-align: center;"> 모서리 자르기 </td>
+                    {% endif %}
+                    {% if image.region_noise_filter == 0 %}
+                        <td style="text-align: center;"> 모서리 자르기 및 구멍 채우기 </td>
+                    {% endif %}
+                    <td style="text-align: right;"> {{image.severity_threshold}} </td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -105,7 +76,12 @@
 {% endblock content %}
 
 {% block jquery %}
-
+<script>
+$("#customFile").on("change", function() {
+  var fileName = $(this).val().split("\\").pop();
+  $(this).siblings("#label_filename").addClass("selected").html(fileName);
+});
+</script>
 {% endblock jquery %}
 
 {% block footer %}
