@@ -458,18 +458,6 @@ img_origin.onload = function () {
                     }
                 }
             }
-            for (var i = 0; i < patchings.length; i++) {
-                var region_x = patchings[i]['patching_results']['patching_region_minx'];
-                var region_y = patchings[i]['patching_results']['patching_region_miny'];
-                var region_width = patchings[i]['patching_results']['patching_region_maxx'] - patchings[i]['patching_results']['patching_region_minx'];
-                var region_height = patchings[i]['patching_results']['patching_region_maxy'] -  patchings[i]['patching_results']['patching_region_miny'];
-
-                ctx.beginPath();
-                ctx.lineWidth = "20";
-                ctx.strokeStyle = "orange";
-                ctx.rect(region_x, region_y, region_width, region_height);
-                ctx.stroke();
-            }
         }
 
         if (is_region_name == true) {

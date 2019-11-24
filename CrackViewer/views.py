@@ -152,7 +152,6 @@ def get_patching(request) :
         dict_region['region_num'] = region.region_num
         dict_region['patchs'] = []
         patching_results = {}
-        patching_results['contours'] = region.patching_results['contours']
         patching_results['patching_bbox_maxx'] = region.patching_results['patching_bbox_maxx']
         patching_results['patching_bbox_maxy'] = region.patching_results['patching_bbox_maxy']
         patching_results['patching_bbox_minx'] = region.patching_results['patching_bbox_minx']
@@ -227,6 +226,7 @@ def analysis(request) :
         seg_result = response['seg_image']
         region_results = response['region_result']
 
+        print("cls_results save start")
         for result in cls_result :
             clsResultModel = ClsResultModel.objects.create(image=image)
 
@@ -258,8 +258,9 @@ def analysis(request) :
             if final_label in ['lc', 'tc', 'ac'] :
                 clsResultModel.severity = result['severity']
             clsResultModel.save()
+        print("cls_results save end")
 
-        # print(region_results)
+        print("region_results save start", len(region_results))
         for region in region_results :
             region_area = region['region_area']
             regionResultModel = RegionResultModel.objects.create(image=image)
@@ -288,21 +289,20 @@ def analysis(request) :
                 patching_results['patching_region_miny'] = region['patching_region_miny']
                 patching_results['patching_region_maxx'] = region['patching_region_maxx']
                 patching_results['patching_region_maxy'] = region['patching_region_maxy']
-                patching_results['patching_seg_image'] = region['patching_seg_image']
-                patching_results['contours'] = region['contours']
+                # patching_results['patching_seg_image'] = region['patching_seg_image']
                 regionResultModel.patching_results = patching_results
             else :
                 print(region['region_type'])
 
             for patch in region_area :
                 regionPositionModel = RegionPositionModel.objects.create(region_model=regionResultModel)
-
                 regionPositionModel.x = patch['x']
                 regionPositionModel.y = patch['y']
                 regionPositionModel.w = patch['w']
                 regionPositionModel.h = patch['h']
                 regionPositionModel.save()
             regionResultModel.save()
+        print("region_results save end")
 
 
         # Save segmentation result
@@ -310,24 +310,24 @@ def analysis(request) :
         seg_img_path = os.path.join(str(image.image).split(".")[0] + "_seg" + ".png")
         seg_img_th_path = os.path.join(str(image.image).split(".")[0] + "_seg_th" + ".png")
         seg_img_hl_path = os.path.join(str(image.image).split(".")[0] + "_seg_hl" + ".png")
-        seg_img_hl_th_path = os.path.join(str(image.image).split(".")[0] + "_seg_hl_th" + ".png")
+
+        print("seg_image save start")
 
         segResultModel.seg_image = ContentFile(base64.b64decode(seg_result), name=seg_img_path)
+        print("seg_image save")
         segResultModel.seg_image_th = ContentFile(base64.b64decode(seg_result), name=seg_img_th_path)
+        print("seg_image_th save")
         segResultModel.seg_image_hl = ContentFile(base64.b64decode(seg_result), name=seg_img_hl_path)
-        segResultModel.seg_img_hl_th = ContentFile(base64.b64decode(seg_result), name=seg_img_hl_th_path)
+        print("seg_image_hl save")
         segResultModel.save()
 
         seg_img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_path)
         seg_img_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_th_path)
         seg_img_hl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_path)
-        seg_img_hl_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_th_path)
 
         save_image_binary(seg_img_path)
         save_image_binary_thresholding(seg_img_th_path, severity_threshold)
         save_image_hightlight_region(seg_img_th_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
-        save_image_hightlight_region(seg_img_th_path, seg_img_hl_th_path, region_results, patch_size, image_height, image_width)
-        # save_image_hightlight_region_th(seg_img_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
 
         return HttpResponse(json.dumps({"state": True}), 'application/json')
     else:
