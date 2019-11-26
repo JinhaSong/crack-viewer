@@ -50,19 +50,21 @@
                         <label><h6>Region 결합 방법</h6></label>
                         <!--option selector-->
                         <select class="form-control" id="select_region_connectivity">
-                            <option value="0">Connectivity - 4</option>
-                            <option value="1" selected>Connectivity - 8</option>
+                            <option value="0" selected>Connectivity - 4</option>
+                            <option value="1">Connectivity - 8</option>
                         </select>
                         <br>
                         <label><h6>Region Noise Filter Option</h6></label>
                         <!--option selector-->
                         <select class="form-control" id="select_region_noise_filter">
-                            <option value="0">없음</option>
+                            <option value="0" selected>없음</option>
                             <option value="1">구멍 채우기</option>
                             <option value="2">모서리 자르기</option>
-                            <option value="3" selected>모서리 자르기 및 구멍 채우기</option>
+                            <option value="3">모서리 자르기 및 구멍 채우기</option>
                         </select>
                         <br>
+                        <label for="region_threshold" class="form-label"><h6>Region Threshold</h6></label>
+                        <input class="form-control" type="number" value="3" id="region_threshold">
                     </div>
                 </article>
             </div>
@@ -83,29 +85,6 @@
                         </div>
                     </div>
                 </article>
-
-                <!--<div class="card-group-item">-->
-                    <!--<article class="card-group">-->
-                        <!--<div class="card">-->
-                            <!--<header class="card-header"><h6 class="title"> 전문가 태깅 </h6></header>-->
-                            <!--<div class="card-body">-->
-                                <!--<div class="custom-control custom-checkbox">-->
-                                    <!--<input type="checkbox" class="custom-control-input" id="chkbox_seg_gt">-->
-                                    <!--<label class="custom-control-label" for="chkbox_seg_gt"> <h7>균열</h7> </label>-->
-                                    <!--</div>-->
-                                <!--<div class="custom-control custom-checkbox">-->
-                                    <!--<input type="checkbox" class="custom-control-input" id="chkbox_cls_gt">-->
-                                    <!--<label class="custom-control-label" for="chkbox_cls_gt"> <h7>균열 형식(Patch 별)</h7> </label>-->
-                                <!--</div>-->
-                                <!--<div class="custom-control custom-checkbox">-->
-                                    <!--<input type="checkbox" class="custom-control-input" id="chkbox_region_gt">-->
-                                    <!--<label class="custom-control-label" for="chkbox_region_gt"> <h7>균열 형식(Region 별)</h7> </label>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                        <!--</div>-->
-
-                    <!--</article>-->
-                <!--</div>-->
                 <div class="card-group-item">
                     <article class="card-group">
                         <div class="card">
@@ -200,7 +179,7 @@
                         <th> 균열종류 </th>
                         <th> 길이(m) </th>
                         <th> 면적(m²) </th>
-                        <th> 균열양(mm) </th>
+                        <th> 최대<br/>균열양(mm) </th>
                         <th> 심각도 </th>
                     </tr>
                 </thead>
@@ -419,7 +398,7 @@ img_origin.onload = function () {
                     var rect_color, text_color, text;
                     if (cracks[i]['label'] == "crack") { rect_color = colors[0], text_color = colors[0], text = "CR"; }
                     else if (cracks[i]['label'] == "patch") {rect_color = colors[1], text_color = colors[1], text = "PAT"; }
-                    else if (cracks[i]['label'] == "lane") { rect_color = colors[2], text_color = colors[2], text = "LANE"; }
+                    else if (cracks[i]['label'] == "lane") { rect_color = colors[2], text_color = colors[2], text = "LINE"; }
                     else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
                     else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
                     else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[5], text = "TC"; }
@@ -811,6 +790,7 @@ $("#btn_analysis").click(function(e) {
         var select_region_connectivity = document.getElementById("select_region_connectivity");
         var select_region_noise_filter = document.getElementById("select_region_noise_filter");
 
+        var region_threshold = document.getElementById("region_threshold").value;
         var region_connectivity = select_region_connectivity.options[select_region_connectivity.selectedIndex].value;
         var region_noise_filter = select_region_noise_filter.options[select_region_noise_filter.selectedIndex].value;
         var severity_threshold =  document.getElementById("severity_threshold").value;
@@ -822,6 +802,7 @@ $("#btn_analysis").click(function(e) {
             data: {
                 name: 'analysis',
                 image_pk: '{{ image_pk }}',
+                region_threshold: region_threshold,
                 region_connectivity: region_connectivity,
                 region_noise_filter: region_noise_filter,
                 severity_threshold: severity_threshold,

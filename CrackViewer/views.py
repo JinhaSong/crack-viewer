@@ -199,6 +199,7 @@ def analysis(request) :
         analysis_request = AnalysisRequest()
         b_image = analysis_request.load_binary_image(image_path)
 
+        region_threshold = int(request.POST['region_threshold'])
         region_connectivity = int(request.POST['region_connectivity'])
         region_noise_filter = int(request.POST['region_noise_filter'])
         severity_threshold = int(request.POST['severity_threshold'])
@@ -212,6 +213,7 @@ def analysis(request) :
         analysis_request.set_request_attr(
             url=url[0].url,
             image=b_image, modules='crack',
+            region_threshold=region_threshold,
             region_connectivity=region_connectivity,
             region_noise_filter=region_noise_filter,
             severity_threshold=severity_threshold,
@@ -220,11 +222,13 @@ def analysis(request) :
         patch_size =  response['patch_size']
         image_height =  int(response['image_height'])
         image_width =  int(response['image_width'])
-        response = response['results'][0]['module_result']
+        response = response['results'][0]
         # Get classification result and segmentation result from response of crack-bridge-site
+        print(response)
         cls_result = response['cls_result']
-        seg_result = response['seg_image']
         region_results = response['region_result']
+        seg_result = response['seg_image']
+        result_image = response['result_image']
 
         print("cls_results save start")
         for result in cls_result :
