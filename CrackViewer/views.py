@@ -224,7 +224,6 @@ def analysis(request) :
         image_width =  int(response['image_width'])
         response = response['results'][0]
         # Get classification result and segmentation result from response of crack-bridge-site
-        print(response)
         cls_result = response['cls_result']
         region_results = response['region_result']
         seg_result = response['seg_image']
