@@ -43,7 +43,7 @@
                     <div class="card-body">
                         <label><h6>균열 여부 결정 임계값</h6></label>
                         <div class="range-slider">
-                            <input class="input-range" id="severity_threshold" type="range" value="200" min="0" max="255" style="width: calc(100% - 75px)">
+                            <input class="input-range" id="severity_threshold" type="range" value="235" min="0" max="255" style="width: calc(100% - 75px)">
                             <span class="range-value"></span>
                         </div>
                         <br>
@@ -287,7 +287,7 @@ function get_regions() {
                 var width = maxx - minx;
                 var height = maxy - miny;
                 if (text == "PAT") {
-                    var area = (regions[i]['patching_results']['area']/10000).toFixed(2)
+                    var area = (regions[i]['patching_results']['area']/1000000).toFixed(2)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
 
@@ -303,9 +303,9 @@ function get_regions() {
                     }
                     var length = 0;
                     if (text == "LC")
-                        length = (width/100).toFixed(0);
+                        length = (height/1000).toFixed(3);
                     else if (text == "TC")
-                        length = (width/100).toFixed(0);
+                        length = (width/1000).toFixed(3);
                     tr.append("td").attr("class", "crack_width").text(length);
                     tr.append("td").attr("class", "crack_area").text("-");
                     tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
@@ -314,7 +314,7 @@ function get_regions() {
                 else {
                     var severity_results = regions[i]['severity_results']
 
-                    var area = ((severity_results['maxx'] - severity_results['minx']) * (severity_results['maxy'] - severity_results['miny'])/10000).toFixed(2)
+                    var area = ((severity_results['maxx'] - severity_results['minx']) * (severity_results['maxy'] - severity_results['miny'])/1000000).toFixed(2)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
 
