@@ -296,7 +296,7 @@ function get_regions() {
                     tr.append("td").attr("class", "severity_area").text("-");
                     tr.append("td").attr("class", "severity_severity").text("-");
                 }
-                else {
+                else if (text == "LC" || text == "TC") {
                     var total_avg_width = total_average_width.toFixed(0)
                     if (total_avg_width == 0) {
                         total_avg_width = parseInt(total_avg_width)
@@ -310,6 +310,18 @@ function get_regions() {
                     tr.append("td").attr("class", "crack_area").text("-");
                     tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
                     tr.append("td").attr("class", "crack_severity").text(severity);
+                }
+                else {
+                    var severity_results = regions[i]['severity_results']
+
+                    var area = ((severity_results['maxx'] - severity_results['minx']) * (severity_results['maxy'] - severity_results['miny'])/10000).toFixed(2)
+                    var area_upper = comma(parseInt(String(area).split(".")[0]));
+                    var floor = String(area).split(".")[1];
+
+                    tr.append("td").attr("class", "severity_height").text("-");
+                    tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
+                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "severity_severity").text(severity);
                 }
             }
         }
@@ -494,8 +506,8 @@ img_origin.onload = function () {
                 }
             }
             for (var i = 0; i < patchings.length; i++) {
-                var bbox_x = patchings[i]['patching_results']['patching_region_minx'] + patchings[i]['patching_results']['patching_bbox_minx'];
-                var bbox_y = patchings[i]['patching_results']['patching_region_miny'] + patchings[i]['patching_results']['patching_bbox_miny'];
+                var bbox_x = patchings[i]['patching_results']['patching_bbox_minx'];
+                var bbox_y = patchings[i]['patching_results']['patching_bbox_miny'];
                 var bbox_width = patchings[i]['patching_results']['patching_bbox_maxx'] - patchings[i]['patching_results']['patching_bbox_minx'];
                 var bbox_height = patchings[i]['patching_results']['patching_bbox_maxy'] -  patchings[i]['patching_results']['patching_bbox_miny'];
 
