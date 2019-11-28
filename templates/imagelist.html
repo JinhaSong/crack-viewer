@@ -55,16 +55,16 @@
                         <td style="text-align: center;"> Connectivity - 8 </td>
                     {% endif %}
 
-                    {% if image.region_noise_filter == 1 %}
+                    {% if image.region_noise_filter == 0 %}
                         <td style="text-align: center;"> 없음 </td>
                     {% endif %}
-                    {% if image.region_noise_filter == 2 %}
+                    {% if image.region_noise_filter == 1 %}
                         <td style="text-align: center;"> 구멍 채우기 </td>
                     {% endif %}
-                    {% if image.region_noise_filter == 3 %}
+                    {% if image.region_noise_filter == 2 %}
                         <td style="text-align: center;"> 모서리 자르기 </td>
                     {% endif %}
-                    {% if image.region_noise_filter == 0 %}
+                    {% if image.region_noise_filter == 3 %}
                         <td style="text-align: center;"> 모서리 자르기 및 구멍 채우기 </td>
                     {% endif %}
                     <td style="text-align: right;"> {{image.severity_threshold}} </td>
