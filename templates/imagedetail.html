@@ -287,6 +287,7 @@ function get_regions() {
                 var width = maxx - minx;
                 var height = maxy - miny;
                 if (text == "PAT") {
+                    console.log(regions[i]['patching_results'])
                     var area = (regions[i]['patching_results']['area']/1000000).toFixed(2)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
@@ -297,10 +298,6 @@ function get_regions() {
                     tr.append("td").attr("class", "severity_severity").text("-");
                 }
                 else if (text == "LC" || text == "TC") {
-                    var total_avg_width = total_average_width.toFixed(0)
-                    if (total_avg_width == 0) {
-                        total_avg_width = parseInt(total_avg_width)
-                    }
                     var length = 0;
                     if (text == "LC")
                         length = (height/1000).toFixed(3);
@@ -320,7 +317,7 @@ function get_regions() {
 
                     tr.append("td").attr("class", "severity_height").text("-");
                     tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
-                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
                     tr.append("td").attr("class", "severity_severity").text(severity);
                 }
             }
@@ -405,7 +402,8 @@ img_origin.onload = function () {
                     var rect_color, text_color, text;
                     if (cracks[i]['label'] == "crack") { rect_color = colors[0], text_color = colors[0], text = "CR"; }
                     else if (cracks[i]['label'] == "patch") {rect_color = colors[1], text_color = colors[1], text = "PAT"; }
-                    else if (cracks[i]['label'] == "lane") { rect_color = colors[2], text_color = colors[2], text = "LINE"; }
+                    else if (cracks[i]['label'] == "line") { rect_color = colors[2], text_color = colors[2], text = "LINE"; }
+                    else if (cracks[i]['label'] == "pothole") { rect_color = colors[6], text_color = colors[6], text = "POT"; }
                     else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
                     else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
                     else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[5], text = "TC"; }

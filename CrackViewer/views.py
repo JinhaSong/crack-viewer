@@ -49,8 +49,8 @@ def image_list(request) :
 
     for image_model in image_models :
         region_connectivity.append(image_model.region_connectivity)
-        region_connectivity.append(image_model.region_noise_filter)
-        region_connectivity.append(image_model.severity_threshold)
+        region_noise_filter.append(image_model.region_noise_filter)
+        severity_threshold.append(image_model.severity_threshold)
 
     return render(request, 'imagelist.html', {
         'images' : image_models,
@@ -234,7 +234,7 @@ def analysis(request) :
             clsResultModel = ClsResultModel.objects.create(image=image)
 
             label_list = []
-            label_names = ['crack', 'lane', 'patch', 'normal']
+            label_names = ['crack', 'line', 'patch', 'normal', 'pothole']
             for label in result['label']:
                 if label['description'] in label_names:
                     label_list.append(label)
@@ -243,15 +243,12 @@ def analysis(request) :
 
             if labels[0]['description'] == 'crack':
                 label_list = []
-                detail_label_names = ['lc', 'tc', 'ac', 'detail_norm']
+                detail_label_names = ['lc', 'tc', 'ac']
                 for label in result['label']:
                     if label['description'] in detail_label_names:
                         label_list.append(label)
                 labels = sorted(label_list, key=lambda label_list: (label_list['score']), reverse=True)
-                if labels[0]['description'] == 'detail_norm':
-                    final_label = 'normal'
-                else:
-                    final_label = labels[0]['description']
+                final_label = labels[0]['description']
 
             clsResultModel.label = final_label
             clsResultModel.x = result['position']['x']
@@ -292,7 +289,7 @@ def analysis(request) :
                 patching_results['patching_region_miny'] = region['patching_region_miny']
                 patching_results['patching_region_maxx'] = region['patching_region_maxx']
                 patching_results['patching_region_maxy'] = region['patching_region_maxy']
-                # patching_results['patching_seg_image'] = region['patching_seg_image']
+                patching_results['patching_seg_image'] = region['patching_seg_image']
                 regionResultModel.patching_results = patching_results
             else :
                 print(region['region_type'])
