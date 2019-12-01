@@ -43,7 +43,7 @@
                     <div class="card-body">
                         <label><h6>균열 여부 결정 임계값</h6></label>
                         <div class="range-slider">
-                            <input class="input-range" id="severity_threshold" type="range" value="235" min="0" max="255" style="width: calc(100% - 75px)">
+                            <input class="input-range" id="severity_threshold" type="range" value="239" min="0" max="255" style="width: calc(100% - 75px)">
                             <span class="range-value"></span>
                         </div>
                         <br>
@@ -171,7 +171,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th> Region </th>
+                        <th>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input region_chkbox" id="region_chkbox_all">
+                                <label class="custom-control-label" for="region_chkbox_all"> 영역 </label>
+                            </div>
+                        </th>
                         <th> 균열종류 </th>
                         <th> 길이(m) </th>
                         <th> 면적(m²) </th>
@@ -210,6 +215,14 @@ var img_seg_hl = new Image();
 var img_seg_gt = new Image();
 var img_origin = new Image();
 
+var is_crack_rect = false;
+var is_region_rect = false;
+var is_region_name = false;
+var is_region_bbox = false;
+var is_severity_point = false;
+var is_region_severity_point = false;
+var is_region_chkboxes = []
+
 var canvas = document.getElementById('canvas');
 
 var colors = [
@@ -217,7 +230,6 @@ var colors = [
     "rgb(29, 219, 22)", "rgb(0, 84, 255)", "rgb(255, 228, 0)", "rgb(255, 187, 0)",
     "rgb(255, 0, 127)", "rgb(95, 0, 255)"
 ]
-
 
 var cracks;
 var regions;
@@ -239,6 +251,7 @@ function get_cracks() {
         }
     });
 }
+
 function get_regions() {
     $.ajax({
         url: "{% url 'get_regions' %}",
@@ -251,7 +264,6 @@ function get_regions() {
             regions = response['regions']
             d3.select("#badge_region").text(regions.length)
             d3.select("#badge_region_bbox").text(regions.length)
-
             for (var i = 0; i < regions.length; i++) {
                 var r = (Math.floor(Math.random() * 256));
                 var g = (Math.floor(Math.random() * 256));
@@ -261,6 +273,11 @@ function get_regions() {
                 var rev_b = 255 - b;
                 region_colors.push('rgb(' + r + ',' + g + ',' + b + ')');
                 region_text_colors.push('rgb(' + rev_r + ',' + rev_g + ',' + rev_b + ')');
+                if (i == 0) {
+                    is_region_chkboxes.push(true)
+                } else {
+                    is_region_chkboxes.push(false)
+                }
             }
             var table_severity = d3.select("#table_severity");
             for (var i = 0; i < regions.length; i++) {
@@ -269,8 +286,14 @@ function get_regions() {
                 else if (regions[i]['region_type'] == "lc") { text = "LC"; }
                 else if (regions[i]['region_type'] == "tc") { text = "TC"; }
 
-                var tr = table_severity.append("tr");
-                tr.append("td").attr("class", "region_num").text(regions[i]['region_num']);
+                var tr = table_severity.append("tr").attr("id", "table_row_" + String(i));
+                var check_td = tr.append("td").attr("class", "region_check").append("div").attr("class", "custom-control custom-checkbox")
+                if (i == 0 ) {
+                    check_td.append("input").attr("type", "checkbox").attr("class", "custom-control-input region_chkbox").attr("id", "region_chkbox_" + String(i)).property("checked", "true")
+                } else {
+                    check_td.append("input").attr("type", "checkbox").attr("class", "custom-control-input region_chkbox").attr("id", "region_chkbox_" + String(i))
+                }
+                check_td.append("label").attr("class", "custom-control-label").attr("for", "region_chkbox_" + String(i)).text(String(i))
                 tr.append("td").attr("class", "region_type").text(text);
 
                 var maxx = regions[i]['severity_results']['maxx'];
@@ -287,7 +310,6 @@ function get_regions() {
                 var width = maxx - minx;
                 var height = maxy - miny;
                 if (text == "PAT") {
-                    console.log(regions[i]['patching_results'])
                     var area = (regions[i]['patching_results']['area']/1000000).toFixed(2)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
@@ -320,7 +342,97 @@ function get_regions() {
                     tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
                     tr.append("td").attr("class", "severity_severity").text(severity);
                 }
+
             }
+
+            $('.region_chkbox').click(function (e) {
+                var id = e['target']['id'];
+                var index = parseInt(id.split("chkbox_")[1]);
+                if(d3.select("#" + id).property("checked") == true) {
+                    is_region_chkboxes.splice(index, 1, true);
+                } else if (d3.select("#" + id).property("checked") == false) {
+                    is_region_chkboxes.splice(index, 1, false);
+                }
+                redraw(img)
+            })
+            var canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+
+            canvas.addEventListener('mousemove', function(evt) {
+                lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+                lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
+                var pt = ctx.transformedPoint(lastX, lastY);
+                var range_p = 50;
+
+                if (is_severity_point) {
+                    for (var i = 0; i < cracks.length; i++) {
+                        var label = cracks[i]['label'];
+                        if (label == "lc" ||label == "tc" || label == "ac" ) {
+                            var x = parseInt(cracks[i]['x']) + parseInt(cracks[i]['severity']['max_width_x']);
+                            var y = parseInt(cracks[i]['y']) + parseInt(cracks[i]['severity']['max_width_y']);
+                            var pt_x = parseInt(pt.x);
+                            var pt_y = parseInt(pt.y);
+                            var range_x = (pt_x < x + range_p * g_factor && pt_x > x - range_p * g_factor);
+                            var range_y = (pt_y < y + range_p * g_factor && pt_y > y - range_p * g_factor);
+                            var total_max_width = cracks[i]['severity']['total_max_width'];
+                            if (range_x && range_y) {
+                                var h = [];
+                                h.push("패치 균열 최대 지점");
+                                h.push("균열 최대 지점: (" + String(x) + ", " + String(y) + ")");
+                                h.push("균열 양: " + String(total_max_width));
+
+                                ctx.fillStyle = "white";
+                                ctx.fillRect(pt.x, pt.y, 650, 210);
+                                ctx.strokeStyle = "black";
+                                ctx.lineWidth = "10";
+                                ctx.strokeRect(pt.x, pt.y, 650, 210);
+
+                                for (var j = 0; j < h.length; j++) {
+                                    ctx.font = "50px Arial";
+                                    ctx.fillStyle = "black";
+                                    ctx.textAlign = "left";
+                                    ctx.fillText(h[j], pt.x + 20, pt.y + (j + 1) * 60);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (is_region_severity_point) {
+                    for (var i = 0; i < regions.length; i++) {
+                        if (is_region_chkboxes[i] && regions[i]['region_type'] != 'patch') {
+                            var x = parseInt(regions[i]['severity_results']['max_width_x']);
+                            var y = parseInt(regions[i]['severity_results']['max_width_y']);
+                            var severity = regions[i]['severity_results']['severity'];
+                            var pt_x = parseInt(pt.x);
+                            var pt_y = parseInt(pt.y);
+                            var range_x = (pt_x < x + range_p * g_factor && pt_x > x - range_p * g_factor);
+                            var range_y = (pt_y < y + range_p * g_factor && pt_y > y - range_p * g_factor);
+                            var total_max_width = regions[i]['severity_results']['total_max_width'];
+                            if (range_x && range_y) {
+                                var h = [];
+                                h.push("영역 균열 최대 지점");
+                                h.push("균열 최대 지점: (" + String(x) + ", " + String(y) + ")");
+                                h.push("균열 양: " + String(total_max_width));
+                                h.push("심각도: " + String(severity));
+
+                                ctx.fillStyle = "white";
+                                ctx.fillRect(pt.x, pt.y, 650, 270);
+                                ctx.strokeStyle = "black";
+                                ctx.lineWidth = "10";
+                                ctx.strokeRect(pt.x, pt.y, 650, 270);
+
+                                for (var j = 0; j < h.length; j++) {
+                                    ctx.font = "50px Arial";
+                                    ctx.fillStyle = "black";
+                                    ctx.textAlign = "left";
+                                    ctx.fillText(h[j], pt.x + 20, pt.y + (j + 1) * 60);
+                                }
+                            }
+                        }
+                    }
+                }
+            }, false);
         }
     });
 }
@@ -353,213 +465,32 @@ function get_patching() {
         }
     });
 }
-get_patching();
-get_cracks();
-get_regions();
-get_seg_images();
+
 
 canvas.width = 750;
 canvas.height = 1000;
 
-var is_crack_rect = false;
-var is_region_rect = false;
-var is_region_name = false;
-var is_region_bbox = false;
-var is_severity_point = false;
-var is_region_severity_point = false;
-var alpha = 1;
+var hotspots=[
+  {x:100,y:100,radius:20,tip:'You are over 100,100'},
+  {x:100,y:200,radius:20,tip:'You are over 100,200'},
+];
 
+var ctx;
+var g_factor = 1;
 img_origin.onload = function () {
-    var ctx = canvas.getContext('2d');
-
+    ctx = canvas.getContext('2d');
     trackTransforms(ctx);
     img.push(img_origin);
 
-    function redraw(img) {
-        var p1 = ctx.transformedPoint(0, 0);
-        var p2 = ctx.transformedPoint(canvas.width, canvas.height);
-        ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        ctx.globalAlpha = alpha;
-
-        ctx.beginPath();
-        ctx.fillRect(0, 0, img_origin.width, img_origin.height);
-        ctx.fillStyle = "black";
-        ctx.stroke();
-
-        for (var i = 0; i < img.length; i++) {
-            ctx.drawImage(img[i], 0, 0);
-        }
-
-        if (is_crack_rect == true) {
-            for (var i = 0; i < cracks.length; i++) {
-                if (cracks[i]['label'] != "normal") {
-                    var rect_color, text_color, text;
-                    if (cracks[i]['label'] == "crack") { rect_color = colors[0], text_color = colors[0], text = "CR"; }
-                    else if (cracks[i]['label'] == "patch") {rect_color = colors[1], text_color = colors[1], text = "PAT"; }
-                    else if (cracks[i]['label'] == "line") { rect_color = colors[2], text_color = colors[2], text = "LINE"; }
-                    else if (cracks[i]['label'] == "pothole") { rect_color = colors[6], text_color = colors[6], text = "POT"; }
-                    else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
-                    else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
-                    else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[5], text = "TC"; }
-
-                    ctx.font = "90px Arial";
-                    ctx.fillStyle = text_color;
-                    ctx.textAlign = "center";
-                    ctx.fillText(text, cracks[i]['x']+130, cracks[i]['y'] + 170);
-
-                    ctx.beginPath();
-                    ctx.lineWidth = "2";
-                    ctx.strokeStyle = rect_color;
-                    ctx.rect(cracks[i]['x'], cracks[i]['y'], cracks[i]['w'], cracks[i]['h']);
-                    ctx.stroke();
-                }
-            }
-        }
-
-        if (is_region_rect == true) {
-            for (var i = 0; i < regions.length; i++) {
-                if (regions[i]['patchs'].length > 0) {
-                    rect_color = region_colors[i];
-                    text_color = region_text_colors[i];
-                    var text_region_num = regions[i]['region_num'];
-
-                    var xs = [];
-                    var ys = [];
-                    for (var j = 0; j < regions[i]['patchs'].length; j++) {
-                        var region = regions[i]['patchs'][j];
-                        ctx.beginPath();
-                        ctx.fillStyle = rect_color;
-                        ctx.lineWidth = 30;
-                        ctx.strokeStyle = rect_color;
-                        ctx.rect(region['x'], region['y'], region['w'], region['h']);
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
-
-        if (is_region_name == true) {
-            for (var i = 0; i < regions.length; i++) {
-                if (regions[i]['patchs'].length > 0) {
-                    rect_color = region_colors[i];
-                    text_color = region_text_colors[i];
-                    var text_region_num = regions[i]['region_num'];
-
-                    if (regions[i]['region_type'] == "patch") { text = "PAT"; }
-                    else if (regions[i]['region_type'] == "ac") { text = "AC"; }
-                    else if (regions[i]['region_type'] == "lc") { text = "LC"; }
-                    else if (regions[i]['region_type'] == "tc") { text = "TC"; }
-                    var xs = [];
-                    var ys = [];
-                    for (var j = 0; j < regions[i]['patchs'].length; j++) {
-                        var region = regions[i]['patchs'][j];
-                        xs.push(region['x']);
-                        ys.push(region['y']);
-                    }
-                    var min_x = Math.min.apply(null, xs);
-                    var min_y = Math.min.apply(null, ys);
-                    var max_x = Math.max.apply(null, xs);
-                    var max_y = Math.max.apply(null, ys);
-                    var center_x = min_x + (max_x - min_x)/2;
-                    var center_y = min_y + (max_y - min_y)/2;
-
-                    ctx.font = "300px Arial";
-                    ctx.fillStyle = text_color;
-                    ctx.textAlign = "center";
-                    ctx.fillText(text, center_x + 130, center_y + 130);
-                    ctx.fillText("(" + text_region_num + ")", center_x + 130, center_y  + 430);
-                }
-            }
-        }
-
-
-        if (is_region_bbox == true) {
-            for (var i = 0; i < regions.length; i++) {
-                if (regions[i]['patchs'].length > 1) {
-                    rect_color = region_colors[i];
-                    text_color = region_text_colors[i];
-                    var text_region_num = regions[i]['region_num'];
-
-                    if (regions[i]['region_type'] == "patch") { text = "PAT"; }
-                    else if (regions[i]['region_type'] == "ac") { text = "AC"; }
-                    else if (regions[i]['region_type'] == "lc") { text = "LC"; }
-                    else if (regions[i]['region_type'] == "tc") { text = "TC"; }
-
-                    ctx.beginPath();
-                    ctx.fillStyle = rect_color;
-                    ctx.lineWidth = 30;
-                    ctx.strokeStyle = rect_color;
-                    ctx.rect(
-                        regions[i]['severity_results']['minx'],
-                        regions[i]['severity_results']['miny'],
-                        regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'],
-                        regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny']);
-                    ctx.stroke();
-                }
-            }
-            for (var i = 0; i < patchings.length; i++) {
-                var bbox_x = patchings[i]['patching_results']['patching_bbox_minx'];
-                var bbox_y = patchings[i]['patching_results']['patching_bbox_miny'];
-                var bbox_width = patchings[i]['patching_results']['patching_bbox_maxx'] - patchings[i]['patching_results']['patching_bbox_minx'];
-                var bbox_height = patchings[i]['patching_results']['patching_bbox_maxy'] -  patchings[i]['patching_results']['patching_bbox_miny'];
-
-                ctx.beginPath();
-                ctx.lineWidth = "20";
-                ctx.strokeStyle = colors[1];
-                ctx.rect(bbox_x, bbox_y, bbox_width, bbox_height);
-                ctx.stroke();
-            }
-        }
-
-        if (is_severity_point == true) {
-            for (var i = 0; i < cracks.length; i++) {
-                var label = cracks[i]['label']
-                if (label != "lc" || label != "tc" || label != "ac") {
-                    var x = cracks[i]['x'];
-                    var y = cracks[i]['y'];
-                    var max_width_x = cracks[i]['severity']['max_width_x'];
-                    var max_width_y = cracks[i]['severity']['max_width_y'];
-                    if (max_width_x != 0 && max_width_y != 0) {
-                        ctx.beginPath();
-                        ctx.arc(x + max_width_x, y + max_width_y, 10, 0, Math.PI * 2, false);
-                        ctx.fillStyle = "red";
-                        ctx.fill();
-                        ctx.closePath();
-                    }
-                }
-            }
-        }
-
-        if (is_region_severity_point == true) {
-            for (var i = 0; i < regions.length; i++) {
-                var label = regions[i]['region_type']
-                if (label != "lc" || label != "tc" || label != "ac") {
-                    var max_width_x = regions[i]['severity_results']['max_width_x'];
-                    var max_width_y = regions[i]['severity_results']['max_width_y'];
-                    if (max_width_x != 0 && max_width_y != 0) {
-                        ctx.beginPath();
-                        ctx.arc(max_width_x, max_width_y, 10, 0, Math.PI * 2, false);
-                        ctx.fillStyle = "yellow";
-                        ctx.fill();
-                        ctx.closePath();
-                    }
-                }
-            }
-        }
-        ctx.fillStyle = "black";
-    }
     redraw(img);
-
+    get_patching();
+    get_cracks();
+    get_regions();
+    get_seg_images();
     var lastX = canvas.width / 2,
         lastY = canvas.height / 2;
 
-    var dragStart, dragged;
+    var dragStart, dragged, drawtooltip;
 
     canvas.addEventListener('mousedown', function(evt) {
         document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
@@ -573,12 +504,19 @@ img_origin.onload = function () {
         lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
         lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
         dragged = true;
+        var pt = ctx.transformedPoint(lastX, lastY);
         if (dragStart) {
-            var pt = ctx.transformedPoint(lastX, lastY);
             ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
             redraw(img);
         }
+        if (is_region_severity_point) {
+            redraw(img);
+        }
+        if (is_severity_point) {
+            redraw(img);
+        }
     }, false);
+
 
     canvas.addEventListener('mouseup', function(evt) {
         dragStart = null;
@@ -586,18 +524,14 @@ img_origin.onload = function () {
 
     var scaleFactor = 1.1;
 
-    var zoom = function(clicks, is_btn) {
-        if (is_btn == true) {
-            var pt = ctx.transformedPoint(0, 0);
-        } else {
-            var pt = ctx.transformedPoint(lastX, lastY);
-        }
+    var zoom = function(clicks) {
+        var pt = ctx.transformedPoint(lastX, lastY);
         ctx.translate(pt.x, pt.y);
         var factor = Math.pow(scaleFactor, clicks);
         ctx.scale(factor, factor);
         ctx.translate(-pt.x, -pt.y);
         redraw(img);
-
+        g_factor *= factor;
     }
 
     var handleScroll = function(evt) {
@@ -759,13 +693,189 @@ img_origin.onload = function () {
 };
 img_origin.src = "/media/{{image.image}}";
 
-// if ("{{is_gt}}" == "False") {
-//     d3.select("#chkbox_cls_gt").property("disabled", true)
-//     d3.select("#chkbox_seg_gt").property("disabled", true)
-//     d3.select("#chkbox_region_gt").property("disabled", true)
-// } else {
-//     img_seg_gt.src = "/media/{{gt_result}}";
-// }
+
+function redraw(img) {
+    var p1 = ctx.transformedPoint(0, 0);
+    var p2 = ctx.transformedPoint(canvas.width, canvas.height);
+    ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+
+    ctx.beginPath();
+    ctx.fillRect(0, 0, img_origin.width, img_origin.height);
+    ctx.fillStyle = "black";
+    ctx.stroke();
+
+
+    for (var i = 0; i < img.length; i++) {
+        ctx.drawImage(img[i], 0, 0);
+    }
+
+    if (is_crack_rect == true) {
+        for (var i = 0; i < cracks.length; i++) {
+            if (cracks[i]['label'] != "normal") {
+                var rect_color, text_color, text;
+                if (cracks[i]['label'] == "crack") { rect_color = colors[0], text_color = colors[0], text = "CR"; }
+                else if (cracks[i]['label'] == "patch") {rect_color = colors[1], text_color = colors[1], text = "PAT"; }
+                else if (cracks[i]['label'] == "line") { rect_color = colors[2], text_color = colors[2], text = "LINE"; }
+                else if (cracks[i]['label'] == "pothole") { rect_color = colors[6], text_color = colors[6], text = "POT"; }
+                else if (cracks[i]['label'] == "ac") { rect_color = colors[0], text_color = colors[3], text = "AC"; }
+                else if (cracks[i]['label'] == "lc") { rect_color = colors[0], text_color = colors[4], text = "LC"; }
+                else if (cracks[i]['label'] == "tc") { rect_color = colors[0], text_color = colors[5], text = "TC"; }
+
+                ctx.font = "90px Arial";
+                ctx.fillStyle = text_color;
+                ctx.textAlign = "center";
+                ctx.fillText(text, cracks[i]['x']+130, cracks[i]['y'] + 170);
+
+                ctx.beginPath();
+                ctx.lineWidth = "2";
+                ctx.strokeStyle = rect_color;
+                ctx.rect(cracks[i]['x'], cracks[i]['y'], cracks[i]['w'], cracks[i]['h']);
+                ctx.stroke();
+            }
+        }
+    }
+
+    if (is_region_rect == true) {
+        for (var i = 0; i < regions.length; i++) {
+            if (regions[i]['patchs'].length > 0 && is_region_chkboxes[i] == true) {
+                rect_color = region_colors[i];
+                text_color = region_text_colors[i];
+                var text_region_num = regions[i]['region_num'];
+
+                var xs = [];
+                var ys = [];
+                for (var j = 0; j < regions[i]['patchs'].length; j++) {
+                    var region = regions[i]['patchs'][j];
+                    ctx.beginPath();
+                    ctx.fillStyle = rect_color;
+                    ctx.lineWidth = 30;
+                    ctx.strokeStyle = rect_color;
+                    ctx.rect(region['x'], region['y'], region['w'], region['h']);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    if (is_region_name == true) {
+        for (var i = 0; i < regions.length; i++) {
+            if (regions[i]['patchs'].length > 0 && is_region_chkboxes[i] == true) {
+                rect_color = region_colors[i];
+                text_color = region_text_colors[i];
+                var text_region_num = regions[i]['region_num'];
+
+                if (regions[i]['region_type'] == "patch") { text = "PAT"; }
+                else if (regions[i]['region_type'] == "ac") { text = "AC"; }
+                else if (regions[i]['region_type'] == "lc") { text = "LC"; }
+                else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+                var xs = [];
+                var ys = [];
+                for (var j = 0; j < regions[i]['patchs'].length; j++) {
+                    var region = regions[i]['patchs'][j];
+                    xs.push(region['x']);
+                    ys.push(region['y']);
+                }
+                var min_x = Math.min.apply(null, xs);
+                var min_y = Math.min.apply(null, ys);
+                var max_x = Math.max.apply(null, xs);
+                var max_y = Math.max.apply(null, ys);
+                var center_x = min_x + (max_x - min_x)/2;
+                var center_y = min_y + (max_y - min_y)/2;
+
+                ctx.font = "300px Arial";
+                ctx.fillStyle = text_color;
+                ctx.textAlign = "center";
+                ctx.fillText(text, center_x + 130, center_y + 130);
+                ctx.fillText("(" + text_region_num + ")", center_x + 130, center_y  + 430);
+            }
+        }
+    }
+
+
+    if (is_region_bbox == true) {
+        for (var i = 0; i < regions.length; i++) {
+            if (regions[i]['patchs'].length > 1 && is_region_chkboxes[i] == true) {
+                rect_color = region_colors[i];
+                text_color = region_text_colors[i];
+                var text_region_num = regions[i]['region_num'];
+
+                if (regions[i]['region_type'] == "patch") { text = "PAT"; }
+                else if (regions[i]['region_type'] == "ac") { text = "AC"; }
+                else if (regions[i]['region_type'] == "lc") { text = "LC"; }
+                else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+
+                ctx.beginPath();
+                ctx.fillStyle = rect_color;
+                ctx.lineWidth = 30;
+                ctx.strokeStyle = rect_color;
+                ctx.rect(
+                    regions[i]['severity_results']['minx'],
+                    regions[i]['severity_results']['miny'],
+                    regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'],
+                    regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny']);
+                ctx.stroke();
+            }
+        }
+        for (var i = 0; i < patchings.length; i++) {
+            var bbox_x = patchings[i]['patching_results']['patching_bbox_minx'];
+            var bbox_y = patchings[i]['patching_results']['patching_bbox_miny'];
+            var bbox_width = patchings[i]['patching_results']['patching_bbox_maxx'] - patchings[i]['patching_results']['patching_bbox_minx'];
+            var bbox_height = patchings[i]['patching_results']['patching_bbox_maxy'] -  patchings[i]['patching_results']['patching_bbox_miny'];
+
+            ctx.beginPath();
+            ctx.lineWidth = "20";
+            ctx.strokeStyle = colors[1];
+            ctx.rect(bbox_x, bbox_y, bbox_width, bbox_height);
+            ctx.stroke();
+        }
+    }
+
+    if (is_severity_point == true) {
+        for (var i = 0; i < cracks.length; i++) {
+            var label = cracks[i]['label']
+            if (label != "lc" || label != "tc" || label != "ac") {
+                var x = cracks[i]['x'];
+                var y = cracks[i]['y'];
+                var max_width_x = cracks[i]['severity']['max_width_x'];
+                var max_width_y = cracks[i]['severity']['max_width_y'];
+                if (max_width_x != 0 && max_width_y != 0) {
+                    ctx.beginPath();
+                    ctx.arc(x + max_width_x, y + max_width_y, 10, 0, Math.PI * 2, false);
+                    ctx.fillStyle = "red";
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+        }
+    }
+
+    if (is_region_severity_point == true) {
+        for (var i = 0; i < regions.length; i++) {
+            if (is_region_chkboxes[i] == true) {
+                var label = regions[i]['region_type']
+                if (label != "lc" || label != "tc" || label != "ac") {
+                    var max_width_x = regions[i]['severity_results']['max_width_x'];
+                    var max_width_y = regions[i]['severity_results']['max_width_y'];
+                    if (max_width_x != 0 && max_width_y != 0) {
+                        ctx.beginPath();
+                        ctx.arc(max_width_x, max_width_y, 10, 0, Math.PI * 2, false);
+                        ctx.fillStyle = "yellow";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+    }
+    ctx.fillStyle = "black";
+}
+
 if ("{{is_analyzed}}" == "False") {
     d3.select("#radio_seg_no_th").property("disabled", true);
     d3.select("#radio_seg_th").property("disabled", true);
@@ -785,6 +895,20 @@ else {
     img_seg_th.src = "/media/{{seg_th_result}}";
     img_seg_hl.src = "/media/{{seg_hl_result}}";
 }
+$("#region_chkbox_all").click(function(e) {
+    if (d3.select("#region_chkbox_all").property("checked") == true) {
+        for (var i = 0; i < regions.length; i++) {
+            d3.select("#region_chkbox_" + String(i)).property("checked", true);
+            is_region_chkboxes.splice(i, 1, true);
+        }
+    } else {
+        for (var i = 0; i < regions.length; i++) {
+            d3.select("#region_chkbox_" + String(i)).property("checked", false);
+            is_region_chkboxes.splice(i, 1, false);
+        }
+    }
+});
+
 
 $("#btn_analysis").click(function(e) {
     var $this = $(this);

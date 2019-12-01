@@ -227,7 +227,7 @@ def analysis(request) :
         cls_result = response['cls_result']
         region_results = response['region_result']
         seg_result = response['seg_image']
-        result_image = response['result_image']
+        seg_th_result = response['seg_image_th']
 
         print("cls_results save start")
         for result in cls_result :
@@ -315,18 +315,15 @@ def analysis(request) :
 
         segResultModel.seg_image = ContentFile(base64.b64decode(seg_result), name=seg_img_path)
         print("seg_image save")
-        segResultModel.seg_image_th = ContentFile(base64.b64decode(seg_result), name=seg_img_th_path)
+        segResultModel.seg_image_th = ContentFile(base64.b64decode(seg_th_result), name=seg_img_th_path)
         print("seg_image_th save")
-        segResultModel.seg_image_hl = ContentFile(base64.b64decode(seg_result), name=seg_img_hl_path)
+        segResultModel.seg_image_hl = ContentFile(base64.b64decode(seg_th_result), name=seg_img_hl_path)
         print("seg_image_hl save")
         segResultModel.save()
 
-        seg_img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_path)
         seg_img_th_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_th_path)
         seg_img_hl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../media/', seg_img_hl_path)
 
-        save_image_binary(seg_img_path)
-        save_image_binary_thresholding(seg_img_th_path, severity_threshold)
         save_image_hightlight_region(seg_img_th_path, seg_img_hl_path, region_results, patch_size, image_height, image_width)
 
         return HttpResponse(json.dumps({"state": True}), 'application/json')
