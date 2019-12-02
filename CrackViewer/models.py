@@ -45,6 +45,7 @@ class RegionResultModel(models.Model):
     region_type = models.TextField(null=True, unique=False)
     severity_results = JSONField(null=True)
     patching_results = JSONField(null=True)
+    pothole_results = JSONField(null=True)
 
 
 class RegionPositionModel(models.Model):

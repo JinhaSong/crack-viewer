@@ -117,6 +117,7 @@ def get_regions(request) :
             dict_region['patchs'] = []
             dict_region['severity_results'] = region.severity_results
             dict_region['patching_results'] = region.patching_results
+            dict_region['pothole_results'] = region.pothole_results
             patchs = RegionPositionModel.objects.filter(region_model=region)
             for patch in patchs:
                 dict_patch = {}
@@ -163,7 +164,6 @@ def get_patching(request) :
         dict_region['patching_results'] = patching_results
         regions.append(dict_region)
     return HttpResponse(json.dumps({"regions": regions}), 'application/json')
-
 
 @csrf_exempt
 def analysis(request) :
@@ -289,8 +289,19 @@ def analysis(request) :
                 patching_results['patching_region_miny'] = region['patching_region_miny']
                 patching_results['patching_region_maxx'] = region['patching_region_maxx']
                 patching_results['patching_region_maxy'] = region['patching_region_maxy']
-                patching_results['patching_seg_image'] = region['patching_seg_image']
                 regionResultModel.patching_results = patching_results
+            elif region['region_type'] == 'pothole' :
+                pothole_results = {}
+                pothole_results['area'] = region['area']
+                pothole_results['pothole_bbox_minx'] = region['pothole_bbox_minx']
+                pothole_results['pothole_bbox_miny'] = region['pothole_bbox_miny']
+                pothole_results['pothole_bbox_maxx'] = region['pothole_bbox_maxx']
+                pothole_results['pothole_bbox_maxy'] = region['pothole_bbox_maxy']
+                pothole_results['pothole_region_minx'] = region['pothole_region_minx']
+                pothole_results['pothole_region_miny'] = region['pothole_region_miny']
+                pothole_results['pothole_region_maxx'] = region['pothole_region_maxx']
+                pothole_results['pothole_region_maxy'] = region['pothole_region_maxy']
+                regionResultModel.pothole_results = pothole_results
             else :
                 print(region['region_type'])
 

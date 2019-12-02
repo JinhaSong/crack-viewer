@@ -285,6 +285,7 @@ function get_regions() {
                 else if (regions[i]['region_type'] == "ac") { text = "AC"; }
                 else if (regions[i]['region_type'] == "lc") { text = "LC"; }
                 else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+                else if (regions[i]['region_type'] == "pothole") { text = "POT"; }
 
                 var tr = table_severity.append("tr").attr("id", "table_row_" + String(i));
                 var check_td = tr.append("td").attr("class", "region_check").append("div").attr("class", "custom-control custom-checkbox")
@@ -300,17 +301,14 @@ function get_regions() {
                 var maxy = regions[i]['severity_results']['maxy'];
                 var minx = regions[i]['severity_results']['minx'];
                 var miny = regions[i]['severity_results']['miny'];
-                var total_average_width = regions[i]['severity_results']['total_average_width'];
                 var total_max_width = regions[i]['severity_results']['total_max_width'];
-                var max_width_x = regions[i]['severity_results']['max_width_x'];
-                var max_width_y = regions[i]['severity_results']['max_width_y'];
                 var severity = capitalizeFirstLetter(String(regions[i]['severity_results']['severity']));
 
 
                 var width = maxx - minx;
                 var height = maxy - miny;
                 if (text == "PAT") {
-                    var area = (regions[i]['patching_results']['area']/1000000).toFixed(2)
+                    var area = (regions[i]['patching_results']['area']/1000000).toFixed(3)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
 
@@ -327,22 +325,30 @@ function get_regions() {
                         length = (width/1000).toFixed(3);
                     tr.append("td").attr("class", "crack_width").text(length);
                     tr.append("td").attr("class", "crack_area").text("-");
-                    tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
+                    tr.append("td").attr("class", "crack_area").text(parseFloat(total_max_width).toFixed(2));
                     tr.append("td").attr("class", "crack_severity").text(severity);
                 }
-                else {
-                    var severity_results = regions[i]['severity_results']
-
-                    var area = ((severity_results['maxx'] - severity_results['minx']) * (severity_results['maxy'] - severity_results['miny'])/1000000).toFixed(2)
+                else if (text == 'POT'){
+                    var area = (regions[i]['pothole_results']['area']/1000000).toFixed(3)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
 
                     tr.append("td").attr("class", "severity_height").text("-");
                     tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
-                    tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(0));
+                    tr.append("td").attr("class", "severity_area").text("-");
+                    tr.append("td").attr("class", "severity_severity").text("-");
+                }
+                else{
+                    var severity_results = regions[i]['severity_results']
+                    var area = ((severity_results['maxx'] - severity_results['minx']) * (severity_results['maxy'] - severity_results['miny'])/1000000).toFixed(3)
+                    var area_upper = comma(parseInt(String(area).split(".")[0]));
+                    var floor = String(area).split(".")[1];
+
+                    tr.append("td").attr("class", "severity_height").text("-");
+                    tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
+                    tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(2));
                     tr.append("td").attr("class", "severity_severity").text(severity);
                 }
-
             }
 
             $('.region_chkbox').click(function (e) {
