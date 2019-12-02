@@ -212,7 +212,6 @@ var img = [];
 var img_seg = new Image();
 var img_seg_th = new Image();
 var img_seg_hl = new Image();
-var img_seg_gt = new Image();
 var img_origin = new Image();
 
 var is_crack_rect = false;
@@ -233,7 +232,6 @@ var colors = [
 
 var cracks;
 var regions;
-var patchings;
 var region_colors = []
 var region_text_colors = []
 
@@ -458,21 +456,6 @@ function get_seg_images() {
     });
 }
 
-function get_patching() {
-    $.ajax({
-        url: "{% url 'get_patching' %}",
-        type: "POST",
-        data: {
-            name: 'get_patching',
-            image_pk: '{{ image_pk }}',
-        },
-        success: function (response) {
-            patchings = response['regions']
-        }
-    });
-}
-
-
 canvas.width = 750;
 canvas.height = 1000;
 
@@ -489,7 +472,6 @@ img_origin.onload = function () {
     img.push(img_origin);
 
     redraw(img);
-    get_patching();
     get_cracks();
     get_regions();
     get_seg_images();
@@ -780,6 +762,7 @@ function redraw(img) {
                 else if (regions[i]['region_type'] == "ac") { text = "AC"; }
                 else if (regions[i]['region_type'] == "lc") { text = "LC"; }
                 else if (regions[i]['region_type'] == "tc") { text = "TC"; }
+                else if (regions[i]['region_type'] == "pothole") { text = "POT"; }
                 var xs = [];
                 var ys = [];
                 for (var j = 0; j < regions[i]['patchs'].length; j++) {
@@ -810,35 +793,49 @@ function redraw(img) {
                 rect_color = region_colors[i];
                 text_color = region_text_colors[i];
                 var text_region_num = regions[i]['region_num'];
-
-                if (regions[i]['region_type'] == "patch") { text = "PAT"; }
-                else if (regions[i]['region_type'] == "ac") { text = "AC"; }
-                else if (regions[i]['region_type'] == "lc") { text = "LC"; }
-                else if (regions[i]['region_type'] == "tc") { text = "TC"; }
-
+                var x, y, w, h;
+                if (regions[i]['region_type'] == "patch") {
+                    text = "PAT";
+                    x = regions[i]['patching_results']['patching_bbox_minx'];
+                    y = regions[i]['patching_results']['patching_bbox_miny'];
+                    w = regions[i]['patching_results']['patching_bbox_maxx'] - regions[i]['patching_results']['patching_bbox_minx'];
+                    h = regions[i]['patching_results']['patching_bbox_maxy'] - regions[i]['patching_results']['patching_bbox_miny'];
+                }
+                else if (regions[i]['region_type'] == "ac") {
+                    text = "AC";
+                    x = regions[i]['severity_results']['minx'];
+                    y = regions[i]['severity_results']['miny'];
+                    w = regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'];
+                    h = regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny'];
+                }
+                else if (regions[i]['region_type'] == "lc") {
+                    text = "LC";
+                    x = regions[i]['severity_results']['minx'];
+                    y = regions[i]['severity_results']['miny'];
+                    w = regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'];
+                    h = regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny'];
+                }
+                else if (regions[i]['region_type'] == "tc") {
+                    text = "TC";
+                    x = regions[i]['severity_results']['minx'];
+                    y = regions[i]['severity_results']['miny'];
+                    w = regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'];
+                    h = regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny'];
+                }
+                else if (regions[i]['region_type'] == "pothole") {
+                    text = "POT";
+                    x = regions[i]['pothole_results']['pothole_bbox_minx'];
+                    y = regions[i]['pothole_results']['pothole_bbox_miny'];
+                    w = regions[i]['pothole_results']['pothole_bbox_maxx'] - regions[i]['pothole_results']['pothole_bbox_minx'];
+                    h = regions[i]['pothole_results']['pothole_bbox_maxy'] - regions[i]['pothole_results']['pothole_bbox_miny'];
+                }
                 ctx.beginPath();
                 ctx.fillStyle = rect_color;
                 ctx.lineWidth = 30;
                 ctx.strokeStyle = rect_color;
-                ctx.rect(
-                    regions[i]['severity_results']['minx'],
-                    regions[i]['severity_results']['miny'],
-                    regions[i]['severity_results']['maxx'] - regions[i]['severity_results']['minx'],
-                    regions[i]['severity_results']['maxy'] - regions[i]['severity_results']['miny']);
+                ctx.rect(x,y,w,h);
                 ctx.stroke();
             }
-        }
-        for (var i = 0; i < patchings.length; i++) {
-            var bbox_x = patchings[i]['patching_results']['patching_bbox_minx'];
-            var bbox_y = patchings[i]['patching_results']['patching_bbox_miny'];
-            var bbox_width = patchings[i]['patching_results']['patching_bbox_maxx'] - patchings[i]['patching_results']['patching_bbox_minx'];
-            var bbox_height = patchings[i]['patching_results']['patching_bbox_maxy'] -  patchings[i]['patching_results']['patching_bbox_miny'];
-
-            ctx.beginPath();
-            ctx.lineWidth = "20";
-            ctx.strokeStyle = colors[1];
-            ctx.rect(bbox_x, bbox_y, bbox_width, bbox_height);
-            ctx.stroke();
         }
     }
 
@@ -931,6 +928,10 @@ $("#btn_analysis").click(function(e) {
         var severity_threshold =  document.getElementById("severity_threshold").value;
         document.getElementById("btn_analysis").disabled = true;
 
+        for (var i = 0; i < regions.length; i++) {
+            d3.select("#table_row_" + String(i)).remove()
+        }
+
         $.ajax({
             url: "{% url 'analysis' %}",
             type: "POST",
@@ -959,6 +960,7 @@ $("#btn_analysis").click(function(e) {
                 d3.select("#chkbox_patching_seg").property("disabled", false);
                 $this.html($this.data('original-text'));
                 document.getElementById("btn_analysis").disabled = false;
+                get_seg_images();
             }
         });
     }
