@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM thejn0729/crack-site:latest
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
