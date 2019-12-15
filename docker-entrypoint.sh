@@ -15,4 +15,6 @@ sh server_start.sh
 
 trap 'sh server_shutdown.sh' EXIT
 
+tail -f django.log
+
 exec "$@"
