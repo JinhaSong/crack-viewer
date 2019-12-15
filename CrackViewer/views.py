@@ -174,7 +174,7 @@ def analysis(request) :
         prev_seg_results = SegResultModel.objects.filter(image__pk=request.POST['image_pk'])
         prev_region_results = RegionResultModel.objects.filter(image__pk=request.POST['image_pk'])
         prev_region_positions = RegionPositionModel.objects.filter(region_model=prev_region_results)
-        url = AnalysisURL.objects.filter(server_name="crack")
+        url = AnalysisURL.objects.filter(server_name="crackviewer")
 
         for result in prev_cls_results :
             result.delete()
@@ -209,10 +209,9 @@ def analysis(request) :
         image.region_noise_filter = region_noise_filter
         image.severity_threshold = severity_threshold
         image.save()
-
         analysis_request.set_request_attr(
             url=url[0].url,
-            image=b_image, modules='crack',
+            image=b_image, modules='bin',
             region_threshold=region_threshold,
             region_connectivity=region_connectivity,
             region_noise_filter=region_noise_filter,
@@ -230,6 +229,7 @@ def analysis(request) :
         seg_th_result = response['seg_image_th']
 
         print("cls_results save start")
+        count = 0
         for result in cls_result :
             clsResultModel = ClsResultModel.objects.create(image=image)
 
@@ -242,6 +242,7 @@ def analysis(request) :
             final_label = labels[0]['description']
 
             if labels[0]['description'] == 'crack':
+                count += 1
                 label_list = []
                 detail_label_names = ['lc', 'tc', 'ac']
                 for label in result['label']:
@@ -258,7 +259,7 @@ def analysis(request) :
             if final_label in ['lc', 'tc', 'ac'] :
                 clsResultModel.severity = result['severity']
             clsResultModel.save()
-        print("cls_results save end")
+        print("cls_results save end ", count)
 
         print("region_results save start", len(region_results))
         for region in region_results :

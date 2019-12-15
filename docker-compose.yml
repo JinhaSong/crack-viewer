@@ -10,9 +10,7 @@ services:
       - "docker-compose-env/main.env"
     expose:
       - "8000"
-      - "22"
     ports:
-      - "8776:8000"
-      - "9022:22"
+      - "8888:8000"
     stdin_open: true
     tty: true
