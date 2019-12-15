@@ -8,7 +8,6 @@ RUN apt-get update \
 
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
-RUN ln -s /usr/bin/python3 /usr/bin/python
 
 WORKDIR /workspace
 ADD . .
@@ -22,7 +21,7 @@ ENV DJANGO_SUPERUSER_PASSWORD password
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
-#ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 RUN chmod -R a+w /workspace
 
