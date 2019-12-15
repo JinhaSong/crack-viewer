@@ -1,4 +1,5 @@
 django==1.11.18
+django-mysql
 Pillow
 requests
 opencv-python
