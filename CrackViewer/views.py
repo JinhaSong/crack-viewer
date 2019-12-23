@@ -211,7 +211,7 @@ def analysis(request) :
         image.save()
         analysis_request.set_request_attr(
             url=url[0].url,
-            image=b_image, modules='bin',
+            image=b_image, modules='crackviewer',
             region_threshold=region_threshold,
             region_connectivity=region_connectivity,
             region_noise_filter=region_noise_filter,
