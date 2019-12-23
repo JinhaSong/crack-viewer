@@ -1,17 +1,4 @@
-FROM thejn0729/crack-site:latest
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-	   git wget python3-pip apt-utils libglib2.0-0 libsm6 libxrender1 libxext6\
-	&& rm -rf /var/lib/apt/lists/*
-
-
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools
-
-WORKDIR /workspace
-ADD . .
-RUN pip3 install -r requirements.txt
+FROM muhanit/crack-site:latest
 
 ENV LC_ALL=C.UTF-8
 
