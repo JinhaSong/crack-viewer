@@ -1,5 +1,8 @@
 FROM muhanit/crack-site:latest
 
+WORKDIR /workspace
+ADD . .
+
 ENV LC_ALL=C.UTF-8
 
 ENV DJANGO_SUPERUSER_USERNAME root
