@@ -19,7 +19,8 @@ urlpatterns = [
     url(r'^get_regions/', views.get_regions, name='get_regions'),
     url(r'^get_seg_images/', views.get_seg_images, name='get_seg_images'),
     url(r'^get_patching/', views.get_patching, name='get_patching'),
-    url(r'^analysis/', views.analysis, name='analysis')
+    url(r'^analysis/', views.analysis, name='analysis'),
+    url(r'^get_image_result/', views.get_image_result, name='get_image_result')
 ]
 
 urlpatterns += staticfiles_urlpatterns()

@@ -43,7 +43,7 @@
                         </label>
                     </div>
                     <div class="col-lg-2 align-self-center" style="text-align: center">
-                        <button class="btn btn-outline-secondary" type="submit" form="add_form">업로드</button>
+                        <button class="btn btn-outline-secondary" type="submit" form="add_form" id="btn-upload">업로드</button>
                     </div>
                     </div>
                 </form>
@@ -63,7 +63,7 @@
                             </label>
                         </div>
                         <div class="col-lg-2 align-self-center" style="text-align: center">
-                            <button class="btn btn-outline-secondary" type="submit" form="add_form_multiple">업로드</button>
+                            <button class="btn btn-outline-secondary" type="submit" form="add_form_multiple" id="btn-upload-multiple">업로드</button>
                         </div>
                     </div>
                 </form>
@@ -120,11 +120,18 @@
                                 <button class="btn btn-outline-warning btn-analysis" type="button" id="btn-analysis-{{ image.pk }}">
                                     <i class="fas fa-sync" id="btn-analysis-icon-{{ image.pk }}"></i>
                                 </button>
+                                <button class="btn btn-outline-dark btn-csv-download" type="button" id="btn-csv-download-{{ image.pk }}">
+                                    <i class="fas fa-download" id="btn-csv-download-{{ image.pk }}"></i>
+                                </button>
                             {% else %}
                                 <button class="btn btn-outline-info btn-analysis" type="button" id="btn-analysis-{{ image.pk }}">
                                     <i class="fas fa-cogs" id="btn-analysis-icon-{{ image.pk }}"></i>
                                 </button>
+                                <button class="btn btn-outline-dark btn-csv-download" type="button" id="btn-csv-download-{{ image.pk }}" style="display:none;">
+                                    <i class="fas fa-download" id="btn-csv-download-{{ image.pk }}"></i>
+                                </button>
                             {% endif %}
+
                         </div>
                     </td>
                 </tr>
@@ -139,9 +146,13 @@
 let region_connectivities  = ["Connectivity - 4", "Connectivity - 8"];
 let region_noise_filters = ["없음", "구멍 채우기", "모서리 자르기", "모서리 자르기 및 구멍 채우기"];
 let isAnalyzing = false;
+let names = [];
 let pks = [];
+let csv_contents = [];
 {% for image in images %}
+    names.push("{{ image.image }}");
     pks.push({{ image.pk }});
+    csv_contents.push(`{{ image.result }}`);
 {% endfor %}
 
 $(window).on("beforeunload", function(e) {
@@ -155,14 +166,16 @@ $(window).on("beforeunload", function(e) {
 function analysis(image_pk, region_threshold, region_connectivity, region_noise_filter, severity_threshold) {
     isAnalyzing = true;
 
-    $(".image-checkbox, .btn-analysis, #btn-loading-" + image_pk + ", #link-" + image_pk).prop("disabled", true);
+    $(".image-checkbox, .btn-analysis, .btn-csv-download, #btn-loading-" + image_pk + ", #link-" + image_pk).prop("disabled", true);
     $("#btn-check-all").prop("disabled", true);
     $("#btn-analyze-images").prop("disabled", true);
     $("#customFile").prop("disabled", true);
     $("#customFileMultiple").prop("disabled", true);
+    $("#btn-upload").prop("disabled", true);
+    $("#btn-upload-multiple").prop("disabled", true);
     $("#btn-loading-" + image_pk).show();
     $("#btn-analysis-" + image_pk).hide();
-
+    $("#btn-csv-download-" + image_pk).hide();
     return new Promise((resolve, reject) => {
         $.ajax({
             url: "{% url 'analysis' %}",
@@ -177,28 +190,33 @@ function analysis(image_pk, region_threshold, region_connectivity, region_noise_
             },
             success: function (response) {
                 $("#btn-analysis-" + image_pk).removeClass("btn-outline-info").removeClass("btn-outline-danger").addClass("btn-outline-warning");
+                get_image_result(image_pk)
+                $("#btn-analysis-icon-" + image_pk).removeClass("fa-cogs").addClass("fa-sync");
                 resolve(response);
             },
             error: function (error) {
                 $("#btn-analysis-" + image_pk).removeClass("btn-outline-info").addClass("btn-outline-danger");
-                $("#btn-analysis-icon-" + image_pk).removeClass("fa-cogs").addClass("fa-times");
+                $("#btn-analysis-icon-" + image_pk).removeClass("fa-cogs").removeClass("fa-sync").addClass("fa-times");
                 reject(error);
             },
             complete: function() {
                 $("#region-connectivity-" + image_pk).text(region_connectivities[region_connectivity]);
                 $("#region-noise-filter-" + image_pk).text(region_noise_filters[region_noise_filter]);
                 $("#severity-threshold-" + image_pk).text("" + severity_threshold);
-                $("#btn-analysis-icon-" + image_pk).removeClass("fa-cogs").addClass("fa-sync");
+                $("#btn-csv-download-" + image_pk).prop("disabled", false).css("display", "block");
 
                 for(let k = 0; k < pks.length; k++) {
                     $("#checkbox-" + pks[k]).prop("disabled", false);
                     $("#btn-loading-" + pks[k]).css("display", "none");
                     $("#btn-analysis-" + pks[k]).prop("disabled", false).css("display", "block");
+                    $("#btn-csv-download-" + pks[k]).prop("disabled", false);
                 }
                 $("#btn-check-all").prop("disabled", false);
                 $("#btn-analyze-images").prop("disabled", false);
                 $("#customFile").prop("disabled", false);
                 $("#customFileMultiple").prop("disabled", false);
+                $("#btn-upload").prop("disabled", false);
+                $("#btn-upload-multiple").prop("disabled", false);
                 isAnalyzing = false;
             }
         });
@@ -253,6 +271,22 @@ for(let i = 0; i < pks.length; i++) {
             console.error("분석 실패: " + image_pk, error);
         }
     });
+    $("#btn-csv-download-" + pks[i]).click(function() {
+        var filename = names[i].split('/').pop().split('.')[0];
+        var csvContent = "\uFEFF";
+
+        csvContent += "영역,균열종류,길이(m),면적(m²),최대 균열양(mm),심각도\n";
+        csvContent += csv_contents[i];
+
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename + ".csv");
+        document.body.appendChild(link);
+
+        link.click();
+    });
 }
 
 $("#btn-analyze-images").click(async function() {
@@ -272,7 +306,21 @@ $("#btn-analyze-images").click(async function() {
     }
 });
 
-
+function get_image_result(image_pk){
+    $.ajax({
+        url: "{% url 'get_image_result' %}",
+        type: "POST",
+        data: {
+            image_pk: image_pk,
+        },
+        success: function (response) {
+            for (let i = 0; i < pks.length; i++) {
+                if (pks[i] === image_pk)
+                    csv_contents[i] = response["result"];
+            }
+        },
+    });
+}
 
 </script>
 {% endblock jquery %}

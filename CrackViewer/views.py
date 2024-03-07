@@ -170,10 +170,20 @@ def get_patching(request) :
     return HttpResponse(json.dumps({"regions": regions}), 'application/json')
 
 @csrf_exempt
+def get_image_result(request) :
+    image_result = {}
+    if request.method == "POST" :
+        image = ImageModel.objects.filter(token=request.POST.get('image_pk'))
+        if len(image) > 0:
+            image_result['result'] = image[0].result
+
+    return HttpResponse(json.dumps(image_result), 'application/json')
+
+@csrf_exempt
 def analysis(request) :
     result = []
     if request.method == "POST" :
-        image = ImageModel.objects.filter(pk=request.POST['image_pk'])[0]
+        image = ImageModel.objects.filter(token=request.POST.get('image_pk'))[0]
         prev_cls_results = ClsResultModel.objects.filter(image__pk=request.POST['image_pk'])
         prev_seg_results = SegResultModel.objects.filter(image__pk=request.POST['image_pk'])
         prev_region_results = RegionResultModel.objects.filter(image__pk=request.POST['image_pk'])
@@ -224,17 +234,8 @@ def analysis(request) :
         image_height =  int(response['image_height'])
         image_width =  int(response['image_width'])
         response = response['results'][0]
-        result = copy.deepcopy(response)
-        result.pop("seg_image")
-        result.pop("seg_image_th")
-        result.pop("result_image")
-        for r, region in enumerate(result["region_result"]):
-            try:
-                result["region_result"][r].pop("patching_seg_image")
-            except:
-                pass
-        image.result = result
-        image.save()
+
+
         # Get classification result and segmentation result from response of crack-bridge-site
         cls_result = response['cls_result']
         region_results = response['region_result']
@@ -275,11 +276,16 @@ def analysis(request) :
         print("cls_results save end ", count)
 
         print("region_results save start", len(region_results))
+        regions = []
         for region in region_results :
+            dict_region = {}
             region_area = region['region_area']
             regionResultModel = RegionResultModel.objects.create(image=image)
             regionResultModel.region_num = region['region']
+            dict_region['region_num'] = region['region']
             regionResultModel.region_type = region['region_type']
+            dict_region['region_type'] = region['region_type']
+            dict_region['patchs'] = []
             if region['region_type'] in ['lc', 'tc', 'ac'] :
                 severity_results = {}
                 severity_results['total_max_width'] = region['total_max_width']
@@ -292,6 +298,7 @@ def analysis(request) :
                 severity_results['miny'] = region['miny']
                 severity_results['severity'] = region['severity']
                 regionResultModel.severity_results = severity_results
+                dict_region['severity_results'] = severity_results
             elif region['region_type'] == 'patch' :
                 patching_results = {}
                 patching_results['area'] = region['area']
@@ -304,6 +311,7 @@ def analysis(request) :
                 patching_results['patching_region_maxx'] = region['patching_region_maxx']
                 patching_results['patching_region_maxy'] = region['patching_region_maxy']
                 regionResultModel.patching_results = patching_results
+                dict_region['patching_results'] = patching_results
             elif region['region_type'] == 'pothole' :
                 pothole_results = {}
                 pothole_results['area'] = region['area']
@@ -316,6 +324,7 @@ def analysis(request) :
                 pothole_results['pothole_region_maxx'] = region['pothole_region_maxx']
                 pothole_results['pothole_region_maxy'] = region['pothole_region_maxy']
                 regionResultModel.pothole_results = pothole_results
+                dict_region['pothole_results'] = pothole_results
             else :
                 print(region['region_type'])
 
@@ -327,8 +336,12 @@ def analysis(request) :
                 regionPositionModel.h = patch['h']
                 regionPositionModel.save()
             regionResultModel.save()
+            regions.append(dict_region)
         print("region_results save end")
 
+        csv_contents = generate_csv_contents(regions)
+        image.result = csv_contents
+        image.save()
 
         # Save segmentation result
         segResultModel = SegResultModel.objects.create(image=image)
@@ -354,3 +367,70 @@ def analysis(request) :
         return HttpResponse(json.dumps({"state": True}), 'application/json')
     else:
         return HttpResponse(json.dumps({"state": False}), 'application/json')
+
+
+def generate_csv_contents(regions):
+    results = "영역,균열종류,길이(m),면적(m²),최대 균열양(mm),심각도\n"
+    for i, region in enumerate(regions):
+        region_type = region['region_type']
+        if region_type == "patch":
+            text = "PAT"
+        elif region_type == "ac":
+            text = "AC"
+        elif region_type == "lc":
+            text = "LC"
+        elif region_type == "tc":
+            text = "TC"
+        elif region_type == "pothole":
+            text = "POT"
+
+        if text == "PAT" or text == 'POT':
+            area = region['patching_results']['area'] / 1000000 if text == "PAT" else region['pothole_results']['area'] / 1000000
+            area_str = "{:.3f}".format(area)
+            area_upper, floor = area_str.split('.')
+            crack_area = "{}.{}".format(comma(int(area_upper)), floor)
+            crack_width = "-"
+            severity_area = "-"
+            severity_severity = "-"
+        elif text in ["LC", "TC"]:
+            maxx = region['severity_results']['maxx']
+            maxy = region['severity_results']['maxy']
+            minx = region['severity_results']['minx']
+            miny = region['severity_results']['miny']
+            total_max_width = region['severity_results']['total_max_width']
+            severity = capitalize_first_letter(str(region['severity_results']['severity']))
+
+            width = maxx - minx
+            height = maxy - miny
+
+            length = height / 1000 if text == "LC" else width / 1000
+            crack_width = "{:.3f}".format(length)
+            crack_area = "-"
+            severity_area = "{:.2f}".format(float(total_max_width))
+            severity_severity = severity
+        else:
+            maxx = region['severity_results']['maxx']
+            maxy = region['severity_results']['maxy']
+            minx = region['severity_results']['minx']
+            miny = region['severity_results']['miny']
+            total_max_width = region['severity_results']['total_max_width']
+            severity = capitalize_first_letter(str(region['severity_results']['severity']))
+            width = maxx - minx
+
+            area = ((maxx - minx) * (maxy - miny) / 1000000)
+            area_str = "{:.3f}".format(area)
+            area_upper, floor = area_str.split('.')
+            crack_area = "{}.{}".format(comma(int(area_upper)), floor)
+            crack_width = "-"
+            severity_area = "{:.2f}".format(float(total_max_width))
+            severity_severity = severity
+        result =  "{},{},{},{},{},{}\n".format(i+1, text, crack_width, crack_area, severity_area, severity_severity)
+        results += result
+    return results
+
+
+def capitalize_first_letter(s):
+    return s.capitalize()
+
+def comma(value):
+    return "{:,}".format(value)

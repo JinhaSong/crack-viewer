@@ -17,7 +17,7 @@ class ImageModel(models.Model):
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
 class ClsResultModel(models.Model):
-    image = models.ForeignKey(ImageModel, related_name='crack_reulst', on_delete=models.CASCADE)
+    image = models.ForeignKey(ImageModel, related_name='crack_result', on_delete=models.CASCADE)
     label = models.TextField(null=True, unique=False)
     x = models.FloatField(null=True, unique=False)
     y = models.FloatField(null=True, unique=False)
