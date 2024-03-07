@@ -14,60 +14,119 @@
 {% block content %}
     <div class="container">
         <br>
-            <form method="POST" action="{% url 'upload_without_gt' %}" id="add_form" enctype="multipart/form-data">
-                {{ form.as_p }}
-                {% csrf_token %}
-                <div class="row">
-                <div class="col-lg-1 align-self-center" style="text-align: center">
-                    <h5>Upload</h5>
-                </div>
-                <div class="col-lg-9 align-self-center">
-                    <label class="custom-file" >
-                        <input type="file" class="custom-file-input" id="customFile" name="image">
-                        <label class="custom-file-label" for="customFile" id="label_filename"></label>
-                    </label>
-                </div>
-                <div class="col-lg-2 align-self-center" style="text-align: center">
-                    <button class="btn btn-outline-secondary" type="submit" form="add_form">업로드</button>
-                </div>
-                </div>
-            </form>
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-outline-info mr-2" id="btn-check-all">모두 선택</button>
+            <button class="btn btn-outline-primary" id="btn-analyze-images">선택한 이미지 모두 분석</button>
+        </div>
+        <ul class="nav nav-tabs" id="uploadTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="single-file-tab" data-toggle="tab" href="#singleFile" role="tab" aria-controls="singleFile" aria-selected="true">단일 파일 업로드</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="multiple-files-tab" data-toggle="tab" href="#multipleFiles" role="tab" aria-controls="multipleFiles" aria-selected="false">다중 파일 업로드</a>
+            </li>
+        </ul>
+        <br>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="singleFile" role="tabpanel" aria-labelledby="single-file-tab">
+                <form method="POST" action="{% url 'upload_without_gt' %}" id="add_form" enctype="multipart/form-data">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <div class="row">
+                    <div class="col-lg-2 align-self-center" style="text-align: center">
+                        <h5>단일 파일 업로드</h5>
+                    </div>
+                    <div class="col-lg-8 align-self-center">
+                        <label class="custom-file" >
+                            <input type="file" class="custom-file-input" id="customFile" name="images">
+                            <label class="custom-file-label" for="customFile" id="label_filename"></label>
+                        </label>
+                    </div>
+                    <div class="col-lg-2 align-self-center" style="text-align: center">
+                        <button class="btn btn-outline-secondary" type="submit" form="add_form">업로드</button>
+                    </div>
+                    </div>
+                </form>
+            </div>
+            <div class="tab-pane fade" id="multipleFiles" role="tabpanel" aria-labelledby="multiple-files-tab">
+                <form method="POST" action="{% url 'upload_without_gt' %}" id="add_form_multiple" enctype="multipart/form-data">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-2 align-self-center" style="text-align: center">
+                            <h5>다중 파일 업로드</h5>
+                        </div>
+                        <div class="col-lg-8 align-self-center">
+                            <label class="custom-file">
+                                <input type="file" class="custom-file-input" id="customFileMultiple" name="images" multiple>
+                                <label class="custom-file-label" for="customFileMultiple" id="label_filename_multiple"></label>
+                            </label>
+                        </div>
+                        <div class="col-lg-2 align-self-center" style="text-align: center">
+                            <button class="btn btn-outline-secondary" type="submit" form="add_form_multiple">업로드</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <br>
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th style="text-align: center; vertical-align: middle;"> Image name </th>
-                    <th style="text-align: center; vertical-align: middle;"> Date </th>
+                    <th style="text-align: center; vertical-align: middle;"> 선택 </th>
+                    <th style="text-align: center; vertical-align: middle;"> 이미지 이름 </th>
+                    <th style="text-align: center; vertical-align: middle;"> 업로드 날짜 </th>
                     <th style="text-align: center; vertical-align: middle;"> Region Connectivity </th>
                     <th style="text-align: center; vertical-align: middle;"> Region Noise Filter </th>
                     <th style="text-align: center; vertical-align: middle;"> Severity Threshold </th>
+                    <th style="text-align: center; vertical-align: middle;"> 분석 </th>
                 </tr>
             </thead>
             <tbody>
             {% for image in images %}
                 <tr>
-                    <td> <a href="{% url 'imagedetail' image.pk %}">{{image.image}}</a> </td>
-                    <td style="text-align: center;"> {{image.uploaded_date}} </td>
+                    <td>
+                        <label for="checkbox_{{ image.pk }}"></label><input type="checkbox" class="image-checkbox" id="checkbox-{{ image.pk }}" name="image_selection" value="{{ image.pk }}">
+                    </td>
+                    <td> <a href="{% url 'imagedetail' image.pk %}" id="link-{{ image.pk }}">{{image.image}}</a> </td>
+                    <td style="text-align: center;">{{ image.uploaded_date|date:"y.m.d H:i" }}</td>
                     {% if image.region_connectivity == 0 %}
-                        <td style="text-align: center;"> Connectivity - 4 </td>
+                        <td style="text-align: center;" id="region-connectivity-{{ image.pk }}"> Connectivity - 4 </td>
                     {% endif %}
                     {% if image.region_connectivity == 1 %}
-                        <td style="text-align: center;"> Connectivity - 8 </td>
+                        <td style="text-align: center;" id="region-connectivity-{{ image.pk }}"> Connectivity - 8 </td>
                     {% endif %}
 
                     {% if image.region_noise_filter == 0 %}
-                        <td style="text-align: center;"> 없음 </td>
+                        <td style="text-align: center;" id="region-noise-filter-{{ image.pk }}"> 없음 </td>
                     {% endif %}
                     {% if image.region_noise_filter == 1 %}
-                        <td style="text-align: center;"> 구멍 채우기 </td>
+                        <td style="text-align: center;" id="region-noise-filter-{{ image.pk }}"> 구멍 채우기 </td>
                     {% endif %}
                     {% if image.region_noise_filter == 2 %}
-                        <td style="text-align: center;"> 모서리 자르기 </td>
+                        <td style="text-align: center;" id="region-noise-filter-{{ image.pk }}"> 모서리 자르기 </td>
                     {% endif %}
                     {% if image.region_noise_filter == 3 %}
-                        <td style="text-align: center;"> 모서리 자르기 및 구멍 채우기 </td>
+                        <td style="text-align: center;" id="region-noise-filter-{{ image.pk }}"> 모서리 자르기 및 구멍 채우기 </td>
                     {% endif %}
-                    <td style="text-align: right;"> {{image.severity_threshold}} </td>
+                    <td style="text-align: right;" id="severity-threshold-{{ image.pk }}"> {{image.severity_threshold}} </td>
+                    <td style="text-align: center">
+                        <div class="col d-flex align-items-center" id="analysis-button-group-{{ image.pk }}">
+                            <button class="btn btn-outline-dark" type="button" id="btn-loading-{{ image.pk }}">
+                                <i class="fas fa-spinner fa-spin" id="btn-loading-icon-{{ image.pk }}"></i>
+                            </button>
+                            {% if image.severity_threshold %}
+                                <button class="btn btn-outline-warning btn-analysis" type="button" id="btn-analysis-{{ image.pk }}">
+                                    <i class="fas fa-sync" id="btn-analysis-icon-{{ image.pk }}"></i>
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-info btn-analysis" type="button" id="btn-analysis-{{ image.pk }}">
+                                    <i class="fas fa-cogs" id="btn-analysis-icon-{{ image.pk }}"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -77,10 +136,144 @@
 
 {% block jquery %}
 <script>
+let region_connectivities  = ["Connectivity - 4", "Connectivity - 8"];
+let region_noise_filters = ["없음", "구멍 채우기", "모서리 자르기", "모서리 자르기 및 구멍 채우기"];
+let isAnalyzing = false;
+let pks = [];
+{% for image in images %}
+    pks.push({{ image.pk }});
+{% endfor %}
+
+$(window).on("beforeunload", function(e) {
+    if (isAnalyzing) {
+        var confirmationMessage = "분석 중인 이미지의 연결이 끊길 수 있습니다. 페이지를 떠나시겠습니까?";
+        (e || window.event).returnValue = confirmationMessage;
+        return confirmationMessage;
+    }
+});
+
+function analysis(image_pk, region_threshold, region_connectivity, region_noise_filter, severity_threshold) {
+    isAnalyzing = true;
+
+    $(".image-checkbox, .btn-analysis, #btn-loading-" + image_pk + ", #link-" + image_pk).prop("disabled", true);
+    $("#btn-check-all").prop("disabled", true);
+    $("#btn-analyze-images").prop("disabled", true);
+    $("#customFile").prop("disabled", true);
+    $("#customFileMultiple").prop("disabled", true);
+    $("#btn-loading-" + image_pk).show();
+    $("#btn-analysis-" + image_pk).hide();
+
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: "{% url 'analysis' %}",
+            type: "POST",
+            data: {
+                name: 'analysis',
+                image_pk: image_pk,
+                region_threshold: region_threshold,
+                region_connectivity: region_connectivity,
+                region_noise_filter: region_noise_filter,
+                severity_threshold: severity_threshold,
+            },
+            success: function (response) {
+                $("#btn-analysis-" + image_pk).removeClass("btn-outline-info").removeClass("btn-outline-danger").addClass("btn-outline-warning");
+                resolve(response);
+            },
+            error: function (error) {
+                $("#btn-analysis-" + image_pk).removeClass("btn-outline-info").addClass("btn-outline-danger");
+                $("#btn-analysis-icon-" + image_pk).removeClass("fa-cogs").addClass("fa-times");
+                reject(error);
+            },
+            complete: function() {
+                $("#region-connectivity-" + image_pk).text(region_connectivities[region_connectivity]);
+                $("#region-noise-filter-" + image_pk).text(region_noise_filters[region_noise_filter]);
+                $("#severity-threshold-" + image_pk).text("" + severity_threshold);
+                $("#btn-analysis-icon-" + image_pk).removeClass("fa-cogs").addClass("fa-sync");
+
+                for(let k = 0; k < pks.length; k++) {
+                    $("#checkbox-" + pks[k]).prop("disabled", false);
+                    $("#btn-loading-" + pks[k]).css("display", "none");
+                    $("#btn-analysis-" + pks[k]).prop("disabled", false).css("display", "block");
+                }
+                $("#btn-check-all").prop("disabled", false);
+                $("#btn-analyze-images").prop("disabled", false);
+                $("#customFile").prop("disabled", false);
+                $("#customFileMultiple").prop("disabled", false);
+                isAnalyzing = false;
+            }
+        });
+    });
+}
+
 $("#customFile").on("change", function() {
     var fileName = $(this).val().split("\\").pop();
     $(this).siblings("#label_filename").addClass("selected").html(fileName);
 });
+
+$("#customFileMultiple").on("change", function() {
+    var files = $(this)[0].files;
+    var fileNames = [];
+
+    for (var i = 0; i < files.length; i++) {
+        fileNames.push(files[i].name);
+    }
+
+    var allFileNames = fileNames.join(", ");
+
+    if (allFileNames.length > 50 || files.length > 1) {
+        $(this).siblings(".custom-file-label").addClass("selected").html(files.length + "개의 파일 선택됨(마우스를 올리면 파일이름이 보입니다.)");
+    } else {
+        $(this).siblings(".custom-file-label").addClass("selected").html(allFileNames);
+    }
+});
+
+
+
+$("#btn-check-all").click(function() {
+    let allChecked = pks.every(pk => $("#checkbox-" + pk).prop('checked'));
+
+    for(let i = 0; i < pks.length; i++) {
+        $("#checkbox-" + pks[i]).prop('checked', !allChecked);
+    }
+    $("#checkAll").prop('checked', !allChecked);
+});
+
+
+for(let i = 0; i < pks.length; i++) {
+    $("#btn-loading-" + pks[i]).css("display", "none");
+    $("#btn-analysis-" + pks[i]).click(async function() {
+        let image_pk = pks[i];
+        let region_threshold =  3
+        let region_connectivity =  0
+        let region_noise_filter =  0
+        let severity_threshold =  239
+        try {
+            await analysis(image_pk, region_threshold, region_connectivity, region_noise_filter, severity_threshold);
+        } catch (error) {
+            console.error("분석 실패: " + image_pk, error);
+        }
+    });
+}
+
+$("#btn-analyze-images").click(async function() {
+    for (let i = 0; i < pks.length; i++) {
+        if ($("#checkbox-" + pks[i]).is(':checked')) {
+            let image_pk = pks[i];
+            let region_threshold = 3;
+            let region_connectivity = 0;
+            let region_noise_filter = 0;
+            let severity_threshold = 239;
+            try {
+                await analysis(image_pk, region_threshold, region_connectivity, region_noise_filter, severity_threshold);
+            } catch (error) {
+                console.error("분석 실패: " + image_pk, error);
+            }
+        }
+    }
+});
+
+
+
 </script>
 {% endblock jquery %}
 

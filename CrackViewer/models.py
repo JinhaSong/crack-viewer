@@ -13,6 +13,7 @@ class ImageModel(models.Model):
     region_connectivity = models.IntegerField(default=0)
     region_noise_filter = models.IntegerField(default=0)
     severity_threshold = models.IntegerField(default=0)
+    result = JSONField(default=dict, null=True)
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
 class ClsResultModel(models.Model):

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import copy
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.files.base import ContentFile
@@ -30,14 +32,16 @@ def upload(request) :
 
 @csrf_exempt
 def upload_without_gt(request) :
-    if request.method == "POST" :
-        form = ImageUploadForm(request.POST, request.FILES)
+    if request.method == "POST":
+        files = request.FILES.getlist('images')
 
-        if form.is_valid():
-            form.save()
-            return redirect('/imagelist/')
-        else :
-            return redirect('/imagelist/')
+        for file in files:
+            instance = ImageModel(image=file)
+            instance.save()
+
+        return redirect('/imagelist/')
+    else:
+        return redirect('/imagelist/')
 
 
 def image_list(request) :
@@ -204,11 +208,9 @@ def analysis(request) :
         region_noise_filter = int(request.POST['region_noise_filter'])
         severity_threshold = int(request.POST['severity_threshold'])
 
-
         image.region_connectivity = region_connectivity
         image.region_noise_filter = region_noise_filter
         image.severity_threshold = severity_threshold
-        image.save()
         analysis_request.set_request_attr(
             url=url[0].url,
             image=b_image,
@@ -222,6 +224,17 @@ def analysis(request) :
         image_height =  int(response['image_height'])
         image_width =  int(response['image_width'])
         response = response['results'][0]
+        result = copy.deepcopy(response)
+        result.pop("seg_image")
+        result.pop("seg_image_th")
+        result.pop("result_image")
+        for r, region in enumerate(result["region_result"]):
+            try:
+                result["region_result"][r].pop("patching_seg_image")
+            except:
+                pass
+        image.result = result
+        image.save()
         # Get classification result and segmentation result from response of crack-bridge-site
         cls_result = response['cls_result']
         region_results = response['region_result']
