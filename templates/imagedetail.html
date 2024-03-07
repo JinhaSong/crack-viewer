@@ -246,6 +246,7 @@ var cracks;
 var regions;
 var region_colors = []
 var region_text_colors = []
+var results = []
 
 function get_cracks() {
     $.ajax({
@@ -314,13 +315,21 @@ function get_regions() {
                 var total_max_width = regions[i]['severity_results']['total_max_width'];
                 var severity = capitalizeFirstLetter(String(regions[i]['severity_results']['severity']));
 
+                var region_type = text
+                var crack_width, crack_area, severity_area, severity_severity;
 
                 var width = maxx - minx;
                 var height = maxy - miny;
+
                 if (text == "PAT") {
                     var area = (regions[i]['patching_results']['area']/1000000).toFixed(3)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
+
+                    crack_width = "-";
+                    crack_area = area_upper + "." + floor;
+                    severity_area = "-";
+                    severity_severity = "-";
 
                     tr.append("td").attr("class", "severity_height").text("-");
                     tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
@@ -333,6 +342,12 @@ function get_regions() {
                         length = (height/1000).toFixed(3);
                     else if (text == "TC")
                         length = (width/1000).toFixed(3);
+
+                    crack_width = length;
+                    crack_area = "-";
+                    severity_area = parseFloat(total_max_width).toFixed(2);
+                    severity_severity = severity;
+
                     tr.append("td").attr("class", "crack_width").text(length);
                     tr.append("td").attr("class", "crack_area").text("-");
                     tr.append("td").attr("class", "crack_area").text(parseFloat(total_max_width).toFixed(2));
@@ -342,6 +357,11 @@ function get_regions() {
                     var area = (regions[i]['pothole_results']['area']/1000000).toFixed(3)
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
+
+                    crack_width = "-";
+                    crack_area = area_upper + "." + floor;
+                    severity_area = "-";
+                    severity_severity = "-";
 
                     tr.append("td").attr("class", "severity_height").text("-");
                     tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
@@ -354,11 +374,17 @@ function get_regions() {
                     var area_upper = comma(parseInt(String(area).split(".")[0]));
                     var floor = String(area).split(".")[1];
 
+                    crack_width = "-";
+                    crack_area = area_upper + "." + floor;
+                    severity_area = total_max_width.toFixed(2);
+                    severity_severity = severity;
+
                     tr.append("td").attr("class", "severity_height").text("-");
                     tr.append("td").attr("class", "crack_area").text(area_upper + "." + floor);
                     tr.append("td").attr("class", "crack_area").text(total_max_width.toFixed(2));
                     tr.append("td").attr("class", "severity_severity").text(severity);
                 }
+                results += `${i+1},${region_type},${crack_width},"${crack_area}",${severity_area},${severity_severity}\n`;
             }
 
             $('.region_chkbox').click(function (e) {
@@ -1024,49 +1050,20 @@ $("#btn-download-image").click(function() {
 
 
 function downloadCSV() {
+    var filename = "{{ image.image }}".split('/').pop().split('.')[0];
     var csvContent = "\uFEFF";
 
     csvContent += "영역,균열종류,길이(m),면적(m²),최대 균열양(mm),심각도\n";
-
-    for (var i = 0; i < regions.length; i++) {
-        var regionType = getRegionTypeText(regions[i]['region_type']);
-        var area = calculateArea(regions[i], regionType);
-        var severity = regions[i]['severity_results'] && regions[i]['severity_results']['severity'] !== undefined ? capitalizeFirstLetter(String(regions[i]['severity_results']['severity'])) : "-";
-        var totalMaxWidth = regions[i]['severity_results'] && regions[i]['severity_results']['total_max_width'] !== undefined ? regions[i]['severity_results']['total_max_width'].toFixed(2) : "-";
-
-        var row = `${i+1},${regionType},-,"${area}",${totalMaxWidth},${severity}\n`;
-        csvContent += row;
-    }
+    csvContent += results
 
     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
     var link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "table_severity.csv");
+    link.setAttribute("download", filename + ".csv");
     document.body.appendChild(link);
 
     link.click();
-}
-
-function getRegionTypeText(regionType) {
-    if (regionType == "patch") return "PAT";
-    else if (regionType == "ac") return "AC";
-    else if (regionType == "lc") return "LC";
-    else if (regionType == "tc") return "TC";
-    else if (regionType == "pothole") return "POT";
-    return "-";
-}
-
-function calculateArea(region, regionType) {
-    if (regionType == "PAT" || regionType == "POT") {
-        var area = (region['patching_results'] ? region['patching_results']['area'] : region['pothole_results']['area']) / 1000000;
-        return `${comma(parseInt(String(area).split(".")[0]))}.${String(area).split(".")[1]}`;
-    }
-    return "-";
-}
-
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
 $("#btn-download-csv").click(function() {
