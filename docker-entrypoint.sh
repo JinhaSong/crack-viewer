@@ -3,6 +3,7 @@ set -e
 
 cd /workspace
 service mysql restart
+sh run_migration.sh
 python3 -c "import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'CrackSite.settings'
 import django
