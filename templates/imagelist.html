@@ -121,14 +121,20 @@
                                     <i class="fas fa-sync" id="btn-analysis-icon-{{ image.pk }}"></i>
                                 </button>
                                 <button class="btn btn-outline-dark btn-csv-download" type="button" id="btn-csv-download-{{ image.pk }}">
-                                    <i class="fas fa-download" id="btn-csv-download-{{ image.pk }}"></i>
+                                    <i class="fas fa-file" id="btn-csv-download-{{ image.pk }}"></i>
+                                </button>
+                                <button class="btn btn-outline-dark btn-image-download" type="button" id="btn-image-download-{{ image.pk }}">
+                                    <i class="fas fa-image" id="btn-image-download-{{ image.pk }}"></i>
                                 </button>
                             {% else %}
                                 <button class="btn btn-outline-info btn-analysis" type="button" id="btn-analysis-{{ image.pk }}">
                                     <i class="fas fa-cogs" id="btn-analysis-icon-{{ image.pk }}"></i>
                                 </button>
                                 <button class="btn btn-outline-dark btn-csv-download" type="button" id="btn-csv-download-{{ image.pk }}" style="display:none;">
-                                    <i class="fas fa-download" id="btn-csv-download-{{ image.pk }}"></i>
+                                    <i class="fas fa-file" id="btn-csv-download-{{ image.pk }}"></i>
+                                </button>
+                                <button class="btn btn-outline-dark btn-image-download" type="button" id="btn-image-download-{{ image.pk }}" style="display:none;">
+                                    <i class="fas fa-image" id="btn-image-download-{{ image.pk }}"></i>
                                 </button>
                             {% endif %}
 
@@ -149,10 +155,18 @@ let isAnalyzing = false;
 let names = [];
 let pks = [];
 let csv_contents = [];
+var seg_image_names = [];
+var seg_image_urls = [];
+
 {% for image in images %}
     names.push("{{ image.image }}");
     pks.push({{ image.pk }});
     csv_contents.push(`{{ image.result }}`);
+{% endfor %}
+
+{% for seg_result in seg_results %}
+    seg_image_urls.push("{{ seg_result.seg_image.url }}");
+    seg_image_names.push("{{ seg_result.seg_image.name  }}");
 {% endfor %}
 
 $(window).on("beforeunload", function(e) {
@@ -176,6 +190,7 @@ function analysis(image_pk, region_threshold, region_connectivity, region_noise_
     $("#btn-loading-" + image_pk).show();
     $("#btn-analysis-" + image_pk).hide();
     $("#btn-csv-download-" + image_pk).hide();
+    $("#btn-image-download-" + image_pk).hide();
     return new Promise((resolve, reject) => {
         $.ajax({
             url: "{% url 'analysis' %}",
@@ -204,12 +219,14 @@ function analysis(image_pk, region_threshold, region_connectivity, region_noise_
                 $("#region-noise-filter-" + image_pk).text(region_noise_filters[region_noise_filter]);
                 $("#severity-threshold-" + image_pk).text("" + severity_threshold);
                 $("#btn-csv-download-" + image_pk).prop("disabled", false).css("display", "block");
+                $("#btn-image-download-" + image_pk).prop("disabled", false).css("display", "block");
 
                 for(let k = 0; k < pks.length; k++) {
                     $("#checkbox-" + pks[k]).prop("disabled", false);
                     $("#btn-loading-" + pks[k]).css("display", "none");
                     $("#btn-analysis-" + pks[k]).prop("disabled", false).css("display", "block");
                     $("#btn-csv-download-" + pks[k]).prop("disabled", false);
+                    $("#btn-image-download-" + pks[k]).prop("disabled", false);
                 }
                 $("#btn-check-all").prop("disabled", false);
                 $("#btn-analyze-images").prop("disabled", false);
@@ -286,6 +303,25 @@ for(let i = 0; i < pks.length; i++) {
         document.body.appendChild(link);
 
         link.click();
+    });
+    $("#btn-image-download-" + pks[i]).click(function() {
+        var imageUrl = seg_image_urls[i];
+        var imageName = seg_image_names[i].split('/').pop();
+        console.log(imageName)
+
+        fetch(imageUrl).then(response => response.blob()).then(blob => {
+            var blobUrl = URL.createObjectURL(blob);
+
+            var downloadLink = document.createElement('a');
+            downloadLink.href = blobUrl;
+            downloadLink.download = imageName;
+
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(blobUrl);
+        }).catch(console.error);
     });
 }
 

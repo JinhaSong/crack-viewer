@@ -46,6 +46,15 @@ def upload_without_gt(request) :
 
 def image_list(request) :
     image_models = ImageModel.objects.all().order_by('-pk')
+    seg_results = []
+    for image_model in image_models:
+        seg_result_models = SegResultModel.objects.filter(image=image_model.token)
+        if len(seg_result_models) > 0:
+            seg_result = seg_result_models[0]
+        else:
+            seg_result = None
+        seg_results.append(seg_result)
+
 
     region_connectivity = []
     region_noise_filter = []
@@ -58,6 +67,7 @@ def image_list(request) :
 
     return render(request, 'imagelist.html', {
         'images' : image_models,
+        'seg_results': seg_results,
         'region_connectivitys': region_connectivity,
         'region_noise_filters': region_noise_filter,
         'severity_thresholds': severity_threshold,
